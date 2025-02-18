@@ -1,0 +1,8 @@
+﻿/.vs
+/EFCoreCodeFirstDemo/obj/Debug/net8.0
+/EFCoreCodeFirstDemo/obj/Release/net8.0
+/EFCoreCodeFirstDemo/obj/EFCoreCodeFirstDemo.csproj.nuget.dgspec.json
+/EFCoreCodeFirstDemo/obj/EFCoreCodeFirstDemo.csproj.nuget.g.props
+/EFCoreCodeFirstDemo/obj/EFCoreCodeFirstDemo.csproj.nuget.g.targets
+/EFCoreCodeFirstDemo/obj/project.assets.json
+/EFCoreCodeFirstDemo/obj/project.nuget.cache
