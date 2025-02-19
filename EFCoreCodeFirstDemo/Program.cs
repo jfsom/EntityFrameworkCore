@@ -11,47 +11,24 @@ namespace EFCoreCodeFirstDemo
             {
                 using (var context = new EFCoreDbContext())
                 {
-                    // Create a new Branch
-                    var branch = new Branch
+                    // Retrieve the Student with StudentId 1 from the database
+                    var student = context.Students.Find(1);
+
+                    if (student == null)
                     {
-                        BranchName = "Computer Science",
-                        Description = "Computer Science Department",
-                        PhoneNumber = "123-456-7890",
-                        Email = "cs@example.com"
-                    };
+                        Console.WriteLine("Student with ID 1 not found.");
+                        return;
+                    }
 
-                    // Create a new Student
-                    var student = new Student
-                    {
-                        FirstName = "John",
-                        LastName = "Doe",
-                        DateOfBirth = new DateTime(2000, 1, 1),
-                        Gender = "Male",
-                        Email = "john.doe@example.com",
-                        PhoneNumber = "555-555-5555",
-                        EnrollmentDate = DateTime.Now,
-                        Branch = branch
-                    };
+                    // Display the state of the student after retrieval
+                    Console.WriteLine($"Entity State after retrieval: {context.Entry(student).State}");
 
-                    // Display the Student Entity state before adding to the context
-                    Console.WriteLine($"Student Entity State before adding to the context: {context.Entry(student).State}");
-
-                    // Add the student to the context
-                    // Using DbSet Add Methid
-                    context.Students.Add(student);
-
-                    // Using DbContext Add Methid
-                    // context.Add(student);
-
-                    // Display the Student Entity state after adding to the context
-                    Console.WriteLine($"Student Entity State after adding to the context: {context.Entry(student).State} \n");
-
-                    // Save changes to the database
-                    // This will save both Branch and Student entity to the database
+                    // Simulate calling SaveChanges without modifying the entity
                     context.SaveChanges();
 
-                    // Display the Student Entity state after saving changes
-                    Console.WriteLine($"\nStudent Entity State after saving changes: {context.Entry(student).State}");
+                    Console.WriteLine("SaveChanges called. Since the entity was in the Unchanged state, no operations were performed on the database.");
+
+                    Console.WriteLine($"Entity State after SaveChanges: {context.Entry(student).State}");
                 }
             }
             catch (DbUpdateException dbEx)
