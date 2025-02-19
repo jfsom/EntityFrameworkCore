@@ -1,98 +1,66 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
+using Microsoft.EntityFrameworkCore;
+
 namespace EFCoreCodeFirstDemo
 {
     class Program
     {
         static void Main(string[] args)
         {
-            try
+            // Initialize the database context
+            using (var context = new EFCoreDbContext())
             {
-                //// Initialize the DbContext, which represents a session with the database
-                //using (var context = new EFCoreDbContext())
-                //{
-                //    Console.WriteLine("==============Branch Wise Report==============");
+                try
+                {
+                    // Method Syntax with Include (using lambda expression) 
+                    Console.WriteLine("Method Syntax: Loading Students and their Addresses\n");
 
-                //    // LINQ Query Syntax:
-                //    // This query joins the Branches and Students tables, groups the students by branch,
-                //    // and then prepares to calculate additional information like the number of students 
-                //    // and the average enrollment date for each branch.
-                //    var branchDetailsQuerySyntax = (from branch in context.Branches
-                //                                        // Join the Branches and Students tables on BranchId
-                //                                    join student in context.Students on branch.BranchId equals student.Branch.BranchId
-                //                                    // Group the students by BranchId and BranchName
-                //                                    group student by new { branch.BranchId, branch.BranchName } into branchGroup
-                //                                    // Select the grouped data to prepare for client-side processing
-                //                                    select new
-                //                                    {
-                //                                        BranchName = branchGroup.Key.BranchName, // The name of the branch
-                //                                        Students = branchGroup.ToList() // Fetch all students in this branch
-                //                                    })
-                //                                    .AsEnumerable() // Switch to client-side evaluation for further processing
-                //                                    .Select(branch => new
-                //                                    {
-                //                                        BranchName = branch.BranchName, // The name of the branch
-                //                                        StudentCount = branch.Students.Count(), // Count the number of students in the branch
-                //                                        // Calculate the average enrollment date (as ticks) of the students in the branch
-                //                                        AverageEnrollmentDate = branch.Students.Average(s => s.EnrollmentDate.Ticks),
-                //                                        // Sort students by LastName ascending, then by FirstName ascending
-                //                                        Students = branch.Students.OrderBy(s => s.LastName).ThenBy(s => s.FirstName).ToList()
-                //                                    });
+                    // Eagerly load Student entities along with their related Address entities using method syntax.
+                    var studentsWithAddressesMethod = context.Students
+                        .Include(s => s.Address) // Eager load Address entity using a lambda expression
+                        .ToList();
 
-                //    // LINQ Method Syntax:
-                //    // This query achieves the same goal as the above LINQ Query Syntax but using method syntax.
-                //    var branchDetailsMethodSyntax = context.Branches
-                //                                           // Join the Branches and Students tables on BranchId
-                //                                           .Join(context.Students,
-                //                                                 branch => branch.BranchId,
-                //                                                 student => student.Branch.BranchId,
-                //                                                 (branch, student) => new { branch, student })
-                //                                           // Group the joined data by BranchId and BranchName
-                //                                           .GroupBy(bs => new { bs.branch.BranchId, bs.branch.BranchName })
-                //                                           .AsEnumerable() // Switch to client-side evaluation for further processing
-                //                                           .Select(g => new
-                //                                           {
-                //                                               BranchName = g.Key.BranchName, // The name of the branch
-                //                                               StudentCount = g.Count(), // Count the number of students in the branch
-                //                                               // Calculate the average enrollment date (as ticks) of the students in the branch
-                //                                               AverageEnrollmentDate = g.Average(bs => bs.student.EnrollmentDate.Ticks),
-                //                                               // Sort students by LastName ascending, then by FirstName ascending
-                //                                               Students = g.Select(bs => bs.student).OrderBy(s => s.LastName).ThenBy(s => s.FirstName).ToList()
-                //                                           })
-                //                                           .ToList(); // Convert the result to a list for further processing
+                    // Method Syntax with Include (using string parameter)
+                    // Eagerly load Student entities along with their related Address entities using string-based Include.
+                    //var studentsWithAddressesMethodString = context.Students
+                    //    .Include("Address") // Eager load Address entity using string parameter
+                    //    .ToList();
 
-                //    // Display the results:
-                //    // Check if there are any branches with students to display
-                //    if (branchDetailsQuerySyntax.Any())
-                //    {
-                //        // Iterate over each branch in the query result
-                //        foreach (var branch in branchDetailsQuerySyntax)
-                //        {
-                //            // Display the branch name
-                //            Console.WriteLine($"\nBranch: {branch.BranchName}");
-                //            // Display the number of students in the branch
-                //            Console.WriteLine($"Number of Students: {branch.StudentCount}");
-                //            // Convert the average enrollment date (in ticks) to a DateTime and display it
-                //            Console.WriteLine($"Average Enrollment Date: {new DateTime(Convert.ToInt64(branch.AverageEnrollmentDate)).ToShortDateString()}");
+                    // Eager Loading using Query Syntax with Lambda Expression
+                    //var studentsWithAddressesQueryLambda = (from student in context.Students
+                    //                                        .Include(s => s.Address) // Eagerly load Address entity using lambda in query syntax
+                    //                                        select student).ToList();
 
-                //            // Display details of each student in the branch
-                //            foreach (var student in branch.Students)
-                //            {
-                //                Console.WriteLine($"    Student: {student.LastName}, {student.FirstName} - Enrollment Date: {student.EnrollmentDate.ToShortDateString()}, Email: {student.Email}");
-                //            }
-                //        }
-                //    }
-                //    else
-                //    {
-                //        // If no branch details are found, display a message indicating so
-                //        Console.WriteLine("No branch details found.");
-                //    }
-                //}
+                    // Eager Loading using Query Syntax with String
+                    //var studentsWithAddressesQueryString = (from student in context.Students
+                    //                                        .Include("Address") // Eagerly load Address entity using string in query syntax
+                    //                                        select student).ToList();
+
+                    // Display results
+                    Console.WriteLine(); // Display a new line before displaying the data
+                    foreach (var student in studentsWithAddressesMethod)
+                    {
+                        if (student.Address != null)
+                        {
+                            // Address exists, display the full address details
+                            Console.WriteLine($"Student: {student.FirstName} {student.LastName}, Address: {student.Address.Street}, {student.Address.City}, {student.Address.State}");
+                        }
+                        else
+                        {
+                            // Address is null, display "No Address"
+                            Console.WriteLine($"Student: {student.FirstName} {student.LastName}, Address: No Address");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Handle exceptions
+                    Console.WriteLine($"An error occurred while fetching the data. Error: {ex.Message}");
+                }
             }
-            catch (Exception ex)
-            {
-                // Exception handling: log the exception message if something goes wrong during the process
-                Console.WriteLine($"An error occurred: {ex.Message}");
-            }
+
+            // Final Output
+            Console.WriteLine("Eager loading completed.");
         }
     }
 }
