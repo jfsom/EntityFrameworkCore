@@ -1,5 +1,4 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
-using Microsoft.EntityFrameworkCore;
 namespace EFCoreCodeFirstDemo
 {
     class Program
@@ -10,53 +9,42 @@ namespace EFCoreCodeFirstDemo
             {
                 using (var context = new EFCoreDbContext())
                 {
-                    // Grouping students by their Branch using Query Syntax
-                    var groupedStudentsQuerySyntax = (from student in context.Students
-                                                     .Include(s => s.Branch) // Eager loading of the Branch property
-                                                      group student by student.Branch.BranchName into studentGroup
-                                                      select new
-                                                      {
-                                                          // studentGroup.Key is the BranchName in this case
-                                                          BranchName = studentGroup.Key,
+                    // Joining Students and Branches using Query Syntax (LINQ query)
+                    var studentsWithBranchesQuerySyntax = (from student in context.Students // Loop over the Students table
+                                                           join branch in context.Branches // Perform an inner join with the Branches table
+                                                           on student.Branch.BranchId equals branch.BranchId // Define the join condition based on BranchId
+                                                           select new // Create an anonymous object containing selected fields from both tables
+                                                           {
+                                                               student.FirstName, // Select the student's first name
+                                                               student.LastName,  // Select the student's last name
+                                                               student.Email,     // Select the student's email
+                                                               student.EnrollmentDate, // Select the student's enrollment date
+                                                               branch.BranchName  // Select the corresponding branch name
+                                                           }).ToList(); // Execute the query and convert the result to a list
 
-                                                          // Count the number of students in each group
-                                                          StudentCount = studentGroup.Count(),
+                    // Joining Students and Branches using Method Syntax (LINQ method chaining)
+                    //var studentsWithBranchesMethodSyntax = context.Students // Start with the Students table
+                    //                                              .Join(context.Branches, // Join with the Branches table
+                    //                                                    student => student.Branch.BranchId, // Define the key from the Students table for the join (BranchId)
+                    //                                                    branch => branch.BranchId, // Define the key from the Branches table for the join (BranchId)
+                    //                                                    (student, branch) => new // Create an anonymous object for each joined record
+                    //                                                    {
+                    //                                                        student.FirstName, // Select the student's first name
+                    //                                                        student.LastName,  // Select the student's last name
+                    //                                                        student.Email,     // Select the student's email
+                    //                                                        student.EnrollmentDate, // Select the student's enrollment date
+                    //                                                        branch.BranchName  // Select the corresponding branch name
+                    //                                                    })
+                    //                                              .ToList(); // Execute the query and convert the result to a list
 
-                                                          // Retrieve the list of students in each group
-                                                          Students = studentGroup.ToList()
-                                                      }).ToList();
-
-                    // Grouping students by their Branch using Method Syntax
-                    //var groupedStudentsMethodSyntax = context.Students
-                    //                                         .Include(s => s.Branch) // Eager loading of the Branch property
-                    //                                         .GroupBy(s => s.Branch.BranchName) // Group students by BranchName
-                    //                                         .Select(g => new
-                    //                                         {
-                    //                                             // g.Key is the BranchName in this case
-                    //                                             BranchName = g.Key,
-
-                    //                                             // Count the number of students in each group
-                    //                                             StudentCount = g.Count(),
-
-                    //                                             // Retrieve the list of students in each group
-                    //                                             Students = g.ToList()
-                    //                                         })
-                    //                                         .ToList();
-
-                    // Check if any groups are found
-                    if (groupedStudentsQuerySyntax.Any())
+                    // Check if any results are found
+                    if (studentsWithBranchesQuerySyntax.Any())
                     {
-                        // Iterate through the grouped students and display their details
-                        foreach (var group in groupedStudentsQuerySyntax)
+                        // Iterate through the results and display the details
+                        foreach (var item in studentsWithBranchesQuerySyntax)
                         {
-                            // Output the Branch name and the number of students in that branch
-                            Console.WriteLine($"\nBranch: {group.BranchName}, Number of Students: {group.StudentCount}");
-
-                            // Display details of each student in the branch
-                            foreach (var student in group.Students)
-                            {
-                                Console.WriteLine($"\tStudent: {student.FirstName} {student.LastName}, Email: {student.Email}, Enrollment Date: {student.EnrollmentDate.ToShortDateString()}");
-                            }
+                            // Output the student's details along with the branch name
+                            Console.WriteLine($"Student: {item.FirstName} {item.LastName}, Email: {item.Email}, Enrollment Date: {item.EnrollmentDate.ToShortDateString()}, Branch: {item.BranchName}");
                         }
                     }
                     else
@@ -68,8 +56,6 @@ namespace EFCoreCodeFirstDemo
             }
             catch (Exception ex)
             {
-                // Exception handling: log the exception message
-                // This catches any errors that occur during database access or LINQ operations
                 Console.WriteLine($"An error occurred: {ex.Message}");
             }
         }
