@@ -9,26 +9,40 @@ namespace EFCoreCodeFirstDemo
         {
             try
             {
+                // Simulating a list of student phone number updates received from an external source
+                var studentUpdates = new List<Student>
+                {
+                    //Currently we have only one entity in the database with Id 1
+                    new Student { StudentId = 1, PhoneNumber = "111-111-1111", Email="john.doe@dotnettutorials.com" }
+                };
+
                 using (var context = new EFCoreDbContext())
                 {
-                    // Retrieve the Student with StudentId 1 from the database
-                    var student = context.Students.Find(1);
-
-                    if (student == null)
+                    foreach (var updatedStudent in studentUpdates)
                     {
-                        Console.WriteLine("Student with ID 1 not found.");
-                        return;
+                        // Initial state before attaching (Detached)
+                        Console.WriteLine($"Before Attach: StudentId {updatedStudent.StudentId}, State: {context.Entry(updatedStudent).State}");
+
+                        // Attach the student to the context (state should be Unchanged)
+                        context.Students.Attach(updatedStudent);
+                        Console.WriteLine($"After Attach: StudentId {updatedStudent.StudentId}, State: {context.Entry(updatedStudent).State}");
+
+                        // Mark the PhoneNumber and Email properties as modified (state should be Modified)
+                        context.Entry(updatedStudent).Property(s => s.PhoneNumber).IsModified = true;
+                        context.Entry(updatedStudent).Property(s => s.Email).IsModified = true;
+
+                        Console.WriteLine($"After Marking PhoneNumber as Modified: StudentId {updatedStudent.StudentId}, State: {context.Entry(updatedStudent).State}");
                     }
 
-                    // Display the state of the student after retrieval
-                    Console.WriteLine($"Entity State after retrieval: {context.Entry(student).State}");
-
-                    // Simulate calling SaveChanges without modifying the entity
+                    // Save all changes to the database in one batch
                     context.SaveChanges();
+                    Console.WriteLine("Student Phone numbers and Emails Updated successfully.");
 
-                    Console.WriteLine("SaveChanges called. Since the entity was in the Unchanged state, no operations were performed on the database.");
-
-                    Console.WriteLine($"Entity State after SaveChanges: {context.Entry(student).State}");
+                    // Final state after saving (should be Unchanged)
+                    foreach (var updatedStudent in studentUpdates)
+                    {
+                        Console.WriteLine($"After SaveChanges: StudentId {updatedStudent.StudentId}, State: {context.Entry(updatedStudent).State}");
+                    }
                 }
             }
             catch (DbUpdateException dbEx)
