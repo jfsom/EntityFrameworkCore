@@ -1,4 +1,6 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
+using System.Diagnostics.Metrics;
+using System.Diagnostics;
 
 namespace EFCoreCodeFirstDemo
 {
@@ -12,24 +14,27 @@ namespace EFCoreCodeFirstDemo
                 using (var context = new EFCoreDbContext())
                 {
                     // Fetch the student from the database
+                    // When the student is retrieved, its initial state is Unchanged, indicating that no changes have been made.
                     var student = context.Students.FirstOrDefault(s => s.StudentId == 1);
 
                     if (student != null)
                     {
                         Console.WriteLine($"Initial State: {context.Entry(student).State}");
 
-                        // Update the student's phone number
-                        student.PhoneNumber = "555-123-4567";
+                        //The Remove method is called on the student entity.
+                        //This method marks the entity as Deleted.
+                        context.Students.Remove(student);
 
-                        // EF Core will automatically mark the entity as Modified
-                        Console.WriteLine($"State after modifying PhoneNumber: {context.Entry(student).State}");
+                        //After calling Remove, the entity’s state changes to Deleted, which is tracked by EF Core.
+                        // The state should now be Deleted
+                        Console.WriteLine($"State after marking for deletion: {context.Entry(student).State}");
 
-                        // Save changes to the database
+                        // When SaveChanges() is called, EF Core generates a DELETE SQL statement to remove the student's record from the database.
+                        // Save changes to the database (this will delete the record)
                         context.SaveChanges();
-                        Console.WriteLine("Student phone number updated successfully.");
 
-                        // State after saving changes should be Unchanged
-                        Console.WriteLine($"State after SaveChanges: {context.Entry(student).State}");
+                        //After SaveChanges() completes, the entity is no longer tracked by the context because it has been deleted.
+                        Console.WriteLine("Student record deleted successfully.");
                     }
                     else
                     {
