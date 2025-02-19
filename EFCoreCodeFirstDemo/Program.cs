@@ -1,5 +1,4 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
-using Microsoft.EntityFrameworkCore;
 namespace EFCoreCodeFirstDemo
 {
     class Program
@@ -8,44 +7,39 @@ namespace EFCoreCodeFirstDemo
         {
             try
             {
-                // Initialize the DbContext
                 using (var context = new EFCoreDbContext())
                 {
-                    // Define the filtering criteria
-                    string branchName = "Computer Science Engineering"; // Branch name filter
-                    string gender = "Female"; // Gender filter
+                    // Sorting students by Gender ascending and EnrollmentDate descending using Query Syntax
+                    var sortedStudentsQuerySyntax = (from student in context.Students
+                                                     orderby student.Gender ascending, student.EnrollmentDate descending
+                                                     select student).ToList();
 
-                    // LINQ Query Syntax to filter students by branch name and gender with eager loading
-                    var filteredStudentsQS = (from student in context.Students
-                                             .Include(s => s.Branch) // Eager loading of the Branch property
-                                              where student.Branch.BranchName == branchName && student.Gender == gender
-                                              select student).ToList();
-
-                    // LINQ Method Syntax to filter students by branch name and gender with eager loading
-                    var filteredStudents = context.Students
-                                                  .Include(s => s.Branch) // Eager loading of the Branch property
-                                                  .Where(s => s.Branch.BranchName == branchName && s.Gender == gender)
-                                                  .ToList();
-
-                    // Check if any students match the filtering criteria
-                    if (filteredStudentsQS.Any())
+                    // Sorting students by LastName ascending and EnrollmentDate descending using Method Syntax
+                    var sortedStudentsMethodSyntax = context.Students
+                                                            .OrderBy(s => s.Gender) // Primary sort by Gender in ascending order
+                                                            .ThenByDescending(s => s.EnrollmentDate) // Secondary sort by EnrollmentDate in descending order
+                                                            .ToList();
+                    // Check if any students are found
+                    if (sortedStudentsQuerySyntax.Any())
                     {
-                        // Iterate through the filtered students and display their details
-                        foreach (var student in filteredStudentsQS)
+                        // Iterate through the sorted students and display their details
+                        foreach (var student in sortedStudentsQuerySyntax)
                         {
-                            Console.WriteLine($"Student Found: {student.FirstName} {student.LastName}, Branch: {student.Branch.BranchName}, Gender: {student.Gender}");
+                            // Output the student's details including Gender and enrollment date
+                            Console.WriteLine($"Student: {student.LastName} {student.FirstName}, Gender: {student.Gender}, Enrollment Date: {student.EnrollmentDate.ToShortDateString()}");
                         }
                     }
                     else
                     {
-                        // Output if no students match the filtering criteria
-                        Console.WriteLine("No students found matching the given criteria.");
+                        // Output if no students are found
+                        Console.WriteLine("No students found.");
                     }
                 }
             }
             catch (Exception ex)
             {
                 // Exception handling: log the exception message
+                // This catches any errors that occur during database access or LINQ operations
                 Console.WriteLine($"An error occurred: {ex.Message}");
             }
         }
