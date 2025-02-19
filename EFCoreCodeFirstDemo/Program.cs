@@ -1,5 +1,4 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
-using Microsoft.EntityFrameworkCore;
 namespace EFCoreCodeFirstDemo
 {
     class Program
@@ -10,38 +9,40 @@ namespace EFCoreCodeFirstDemo
             {
                 try
                 {
-                    // Eager Loading Example for Branch, Lazy Loading for Address
-                    Console.WriteLine("Eager Loading Branch, Lazy Loading Address\n");
+                    // Lazy Loading Example
+                    Console.WriteLine("Lazy Loading Student and related data\n");
 
-                    // Load a student and related Branch using Eager Loading
-                    var student = context.Students
-                                         .Include(s => s.Branch)  // Eagerly load the Branch entity
-                                         .FirstOrDefault(s => s.StudentId == 1);
+                    // Load a student (only student data is loaded initially)
+                    var student = context.Students.FirstOrDefault(s => s.StudentId == 1);
 
                     // Display basic student information
                     if (student != null)
                     {
-                        Console.WriteLine($"\nStudent Id: {student.StudentId}, Name: {student.FirstName} {student.LastName}, Gender: {student.Gender}");
+                        Console.WriteLine($"\nStudent Id: {student.StudentId}, Name: {student.FirstName} {student.LastName}, Gender: {student.Gender} \n");
 
-                        // Check if Branch is null
+                        //Disabling Lazy Loading Here
+                        context.ChangeTracker.LazyLoadingEnabled = false;
+
+                        // Check if Branch is null before accessing its properties
                         if (student.Branch != null)
                         {
-                            Console.WriteLine($"Branch Location: {student.Branch.BranchLocation}, Email: {student.Branch.BranchEmail}, Phone: {student.Branch.BranchPhoneNumber}\n");
+                            Console.WriteLine($"\nBranch Location: {student.Branch.BranchLocation}, Email: {student.Branch.BranchEmail}, Phone: {student.Branch.BranchPhoneNumber} \n");
                         }
                         else
                         {
-                            Console.WriteLine("Branch data not available.\n");
+                            Console.WriteLine("\nBranch data not available.\n");
                         }
 
-                        // Accessing the Address property triggers lazy loading
-                        // EF Core will issue a SQL query to load the related Address
+                        //Enabling Lazy Loading Here
+                        context.ChangeTracker.LazyLoadingEnabled = true;
+                        // Check if Address is null before accessing its properties
                         if (student.Address != null)
                         {
-                            Console.WriteLine($"\nAddress: {student.Address.Street}, {student.Address.City}, {student.Address.State}, Pin: {student.Address.PostalCode}");
+                            Console.WriteLine($"\nAddress: {student.Address.Street}, {student.Address.City}, {student.Address.State}, Pin: {student.Address.PostalCode} \n");
                         }
                         else
                         {
-                            Console.WriteLine("\nAddress data not available.");
+                            Console.WriteLine("\nAddress data not available.\n");
                         }
                     }
                     else
@@ -57,7 +58,7 @@ namespace EFCoreCodeFirstDemo
             }
 
             // Final Output
-            Console.WriteLine("\nEager loading of Branch and lazy loading of Address completed.");
+            Console.WriteLine("\nLazy loading of related entities completed.");
         }
     }
 }
