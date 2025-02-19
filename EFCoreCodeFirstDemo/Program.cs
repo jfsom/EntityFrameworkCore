@@ -1,49 +1,47 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
-using System.Diagnostics.Metrics;
-using System.Diagnostics;
-
 namespace EFCoreCodeFirstDemo
 {
     class Program
     {
         static void Main(string[] args)
         {
-
             try
             {
+                // Initialize the DbContext
                 using (var context = new EFCoreDbContext())
                 {
-                    // Fetch the student from the database
-                    // When the student is retrieved, its initial state is Unchanged, indicating that no changes have been made.
-                    var student = context.Students.FirstOrDefault(s => s.StudentId == 1);
+                    // Define the search criteria (searching for a student with the first name "Alice")
+                    string searchFirstName = "Alice";
 
-                    if (student != null)
+                    // LINQ Query Syntax to search for a student by first name
+                    var searchResultQS = (from student in context.Students
+                                          where student.FirstName == searchFirstName
+                                          select student).ToList();
+
+                    // LINQ Method Syntax to search for a student by first name
+                    var searchResultMS = context.Students //accesses the Students DbSet
+                                              .Where(s => s.FirstName == searchFirstName) //filters students with the given first name
+                                              .ToList(); //executes the query and returns the result as a list
+
+                    // Check if any student is found
+                    if (searchResultQS.Any())
                     {
-                        Console.WriteLine($"Initial State: {context.Entry(student).State}");
-
-                        //The Remove method is called on the student entity.
-                        //This method marks the entity as Deleted.
-                        context.Students.Remove(student);
-
-                        //After calling Remove, the entity’s state changes to Deleted, which is tracked by EF Core.
-                        // The state should now be Deleted
-                        Console.WriteLine($"State after marking for deletion: {context.Entry(student).State}");
-
-                        // When SaveChanges() is called, EF Core generates a DELETE SQL statement to remove the student's record from the database.
-                        // Save changes to the database (this will delete the record)
-                        context.SaveChanges();
-
-                        //After SaveChanges() completes, the entity is no longer tracked by the context because it has been deleted.
-                        Console.WriteLine("Student record deleted successfully.");
+                        // Iterate through the result and display the student's details
+                        foreach (var student in searchResultQS)
+                        {
+                            Console.WriteLine($"Student Found: {student.FirstName} {student.LastName}, Email: {student.Email}");
+                        }
                     }
                     else
                     {
-                        Console.WriteLine("Student not found.");
+                        // Output if no student is found
+                        Console.WriteLine("No student found with the given first name.");
                     }
                 }
             }
             catch (Exception ex)
             {
+                // Exception handling: log the exception message
                 Console.WriteLine($"An error occurred: {ex.Message}");
             }
         }
