@@ -13,14 +13,17 @@ namespace EFCoreCodeFirstDemo
                     // Grouping students by their Branch using Query Syntax
                     var groupedStudentsQuerySyntax = (from student in context.Students
                                                      .Include(s => s.Branch) // Eager loading of the Branch property
-                                                      group student by student.Branch.BranchName into studentGroup //Group Students by BranchName into studentGroup
+                                                      group student by student.Branch.BranchName into studentGroup
                                                       select new
                                                       {
                                                           // studentGroup.Key is the BranchName in this case
                                                           BranchName = studentGroup.Key,
 
                                                           // Count the number of students in each group
-                                                          StudentCount = studentGroup.Count()
+                                                          StudentCount = studentGroup.Count(),
+
+                                                          // Retrieve the list of students in each group
+                                                          Students = studentGroup.ToList()
                                                       }).ToList();
 
                     // Grouping students by their Branch using Method Syntax
@@ -33,7 +36,10 @@ namespace EFCoreCodeFirstDemo
                     //                                             BranchName = g.Key,
 
                     //                                             // Count the number of students in each group
-                    //                                             StudentCount = g.Count()
+                    //                                             StudentCount = g.Count(),
+
+                    //                                             // Retrieve the list of students in each group
+                    //                                             Students = g.ToList()
                     //                                         })
                     //                                         .ToList();
 
@@ -45,6 +51,12 @@ namespace EFCoreCodeFirstDemo
                         {
                             // Output the Branch name and the number of students in that branch
                             Console.WriteLine($"\nBranch: {group.BranchName}, Number of Students: {group.StudentCount}");
+
+                            // Display details of each student in the branch
+                            foreach (var student in group.Students)
+                            {
+                                Console.WriteLine($"\tStudent: {student.FirstName} {student.LastName}, Email: {student.Email}, Enrollment Date: {student.EnrollmentDate.ToShortDateString()}");
+                            }
                         }
                     }
                     else
