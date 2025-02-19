@@ -1,4 +1,5 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
+using Microsoft.EntityFrameworkCore;
 namespace EFCoreCodeFirstDemo
 {
     class Program
@@ -9,24 +10,41 @@ namespace EFCoreCodeFirstDemo
             {
                 using (var context = new EFCoreDbContext())
                 {
-                    // Sorting students by Gender ascending and EnrollmentDate descending using Query Syntax
-                    var sortedStudentsQuerySyntax = (from student in context.Students
-                                                     orderby student.Gender ascending, student.EnrollmentDate descending
-                                                     select student).ToList();
+                    // Grouping students by their Branch using Query Syntax
+                    var groupedStudentsQuerySyntax = (from student in context.Students
+                                                     .Include(s => s.Branch) // Eager loading of the Branch property
+                                                      group student by student.Branch.BranchName into studentGroup //Group Students by BranchName into studentGroup
+                                                      select new
+                                                      {
+                                                          // studentGroup.Key is the BranchName in this case
+                                                          BranchName = studentGroup.Key,
 
-                    // Sorting students by LastName ascending and EnrollmentDate descending using Method Syntax
-                    var sortedStudentsMethodSyntax = context.Students
-                                                            .OrderBy(s => s.Gender) // Primary sort by Gender in ascending order
-                                                            .ThenByDescending(s => s.EnrollmentDate) // Secondary sort by EnrollmentDate in descending order
-                                                            .ToList();
-                    // Check if any students are found
-                    if (sortedStudentsQuerySyntax.Any())
+                                                          // Count the number of students in each group
+                                                          StudentCount = studentGroup.Count()
+                                                      }).ToList();
+
+                    // Grouping students by their Branch using Method Syntax
+                    //var groupedStudentsMethodSyntax = context.Students
+                    //                                         .Include(s => s.Branch) // Eager loading of the Branch property
+                    //                                         .GroupBy(s => s.Branch.BranchName) // Group students by BranchName
+                    //                                         .Select(g => new
+                    //                                         {
+                    //                                             // g.Key is the BranchName in this case
+                    //                                             BranchName = g.Key,
+
+                    //                                             // Count the number of students in each group
+                    //                                             StudentCount = g.Count()
+                    //                                         })
+                    //                                         .ToList();
+
+                    // Check if any groups are found
+                    if (groupedStudentsQuerySyntax.Any())
                     {
-                        // Iterate through the sorted students and display their details
-                        foreach (var student in sortedStudentsQuerySyntax)
+                        // Iterate through the grouped students and display their details
+                        foreach (var group in groupedStudentsQuerySyntax)
                         {
-                            // Output the student's details including Gender and enrollment date
-                            Console.WriteLine($"Student: {student.LastName} {student.FirstName}, Gender: {student.Gender}, Enrollment Date: {student.EnrollmentDate.ToShortDateString()}");
+                            // Output the Branch name and the number of students in that branch
+                            Console.WriteLine($"\nBranch: {group.BranchName}, Number of Students: {group.StudentCount}");
                         }
                     }
                     else
