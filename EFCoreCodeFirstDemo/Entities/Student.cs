@@ -1,7 +1,4 @@
-﻿using System.Net;
-using EFCoreCodeFirstDemo.Entities.EFCoreCodeFirstDemo.Entities;
-
-namespace EFCoreCodeFirstDemo.Entities
+﻿namespace EFCoreCodeFirstDemo.Entities
 {
     public class Student
     {
@@ -11,8 +8,8 @@ namespace EFCoreCodeFirstDemo.Entities
         public string Gender { get; set; }
         public DateTime DateOfBirth { get; set; }
         public int BranchId { get; set; }
-        public Branch Branch { get; set; }
-        public Address Address { get; set; }
-        public ICollection<Course> Courses { get; set; }
+        public virtual Branch Branch { get; set; } //Marking the Property as Virtual to Support Lazy Loading
+        public virtual Address Address { get; set; } //Marking the Property as Virtual to Support Lazy Loading
+        public virtual ICollection<Course> Courses { get; set; } //Marking the Property as Virtual to Support Lazy Loading
     }
 }

@@ -1,5 +1,4 @@
-﻿using EFCoreCodeFirstDemo.Entities.EFCoreCodeFirstDemo.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EFCoreCodeFirstDemo.Entities
@@ -11,6 +10,9 @@ namespace EFCoreCodeFirstDemo.Entities
         {
             // Display the generated SQL queries in the Console window
             optionsBuilder.LogTo(Console.WriteLine, LogLevel.Information);
+
+            // Enable lazy loading 
+            optionsBuilder.UseLazyLoadingProxies();
 
             // Configure the connection string
             optionsBuilder.UseSqlServer(@"Server=DESKTOP-RUC57UF;Database=StudentDB;Trusted_Connection=True;TrustServerCertificate=True;");
