@@ -1,14 +1,15 @@
 ﻿namespace EFCoreCodeFirstDemo.Entities
 {
-    public class Branch
+    namespace EFCoreCodeFirstDemo.Entities
     {
-        public int BranchId { get; set; }
-        public string? BranchName { get; set; }
-        public string? Description { get; set; }
-        public string? PhoneNumber { get; set; }
-        public string? Email { get; set; }
-
-        // Collection navigation property representing the students enrolled in the branch
-        public ICollection<Student>? Students { get; set; }
+        public class Branch
+        {
+            public int BranchId { get; set; }
+            public string BranchLocation { get; set; }
+            public string? BranchPhoneNumber { get; set; }
+            public string? BranchEmail { get; set; }
+            public ICollection<Student> Students { get; set; }
+            public ICollection<Teacher> Teachers { get; set; }
+        }
     }
 }

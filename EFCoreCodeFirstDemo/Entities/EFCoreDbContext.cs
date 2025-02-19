@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using EFCoreCodeFirstDemo.Entities.EFCoreCodeFirstDemo.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EFCoreCodeFirstDemo.Entities
@@ -12,15 +13,16 @@ namespace EFCoreCodeFirstDemo.Entities
             optionsBuilder.LogTo(Console.WriteLine, LogLevel.Information);
 
             // Configure the connection string
-            optionsBuilder.UseSqlServer(@"Server=DESKTOP-RUC57UF;Database=EFCoreDB1;Trusted_Connection=True;TrustServerCertificate=True;");
+            optionsBuilder.UseSqlServer(@"Server=DESKTOP-RUC57UF;Database=StudentDB;Trusted_Connection=True;TrustServerCertificate=True;");
         }
 
-        // DbSet<Student> corresponds to the Students table in the database.
-        // It allows EF Core to track and manage Student entities.
+        // DbSet properties represent the tables in the database. 
+        // Each DbSet corresponds to a table, and the type parameter corresponds to the entity class mapped to that table.
         public DbSet<Student> Students { get; set; }
-
-        // DbSet<Branch> corresponds to the Branches table in the database.
-        // It allows EF Core to track and manage Branch entities.
+        public DbSet<Teacher> Teachers { get; set; }
         public DbSet<Branch> Branches { get; set; }
+        public DbSet<Address> Addresses { get; set; }
+        public DbSet<Subject> Subjects { get; set; }
+        public DbSet<Course> Courses { get; set; }
     }
 }
