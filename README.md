@@ -20,3 +20,14 @@ GO
 TRUNCATE TABLE Students;
 DELETE FROM Branches;
 
+-- Truncate the Foreign Key Table
+TRUNCATE TABLE Students;
+GO
+
+-- Delete All Records from the Primary Key Table
+DELETE FROM Branches;
+GO
+
+-- RESEED The Identity
+DBCC CHECKIDENT ('EFCoreDB1.dbo.Branches', RESEED, 0);
+
