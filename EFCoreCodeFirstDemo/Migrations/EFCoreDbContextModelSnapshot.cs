@@ -23,11 +23,11 @@ namespace EFCoreCodeFirstDemo.Migrations
 
             modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.Student", b =>
                 {
-                    b.Property<int>("StudentId")
+                    b.Property<int>("StudentRegdNo")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StudentId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StudentRegdNo"));
 
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");
@@ -35,9 +35,9 @@ namespace EFCoreCodeFirstDemo.Migrations
                     b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("StudentId");
+                    b.HasKey("StudentRegdNo");
 
-                    b.ToTable("StudentInfo", "Admin");
+                    b.ToTable("Students");
                 });
 #pragma warning restore 612, 618
         }
