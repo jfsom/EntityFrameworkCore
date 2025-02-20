@@ -7,10 +7,11 @@ namespace EFCoreCodeFirstDemo.Entities
         public int Id { get; set; }
         public string Name { get; set; }
 
-        [ForeignKey("Department")]
+        //[ForeignKey("Department")]
         public int DepartmentReferenceId { get; set; }
 
         //Related Standard Navigational Property
+        [ForeignKey("DepartmentReferenceId")]
         public Department Department { get; set; }
     }
 }
