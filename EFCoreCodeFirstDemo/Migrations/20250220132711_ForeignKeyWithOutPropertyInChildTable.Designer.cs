@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EFCoreCodeFirstDemo.Migrations
 {
     [DbContext(typeof(EFCoreDbContext))]
-    [Migration("20250220131700_MigrationCreationForeignKey")]
-    partial class MigrationCreationForeignKey
+    [Migration("20250220132711_ForeignKeyWithOutPropertyInChildTable")]
+    partial class ForeignKeyWithOutPropertyInChildTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

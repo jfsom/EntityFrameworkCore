@@ -5,7 +5,7 @@
 namespace EFCoreCodeFirstDemo.Migrations
 {
     /// <inheritdoc />
-    public partial class MigrationCreationForeignKey : Migration
+    public partial class ForeignKeyWithOutPropertyInChildTable : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
