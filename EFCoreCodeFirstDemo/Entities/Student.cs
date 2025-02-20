@@ -2,7 +2,7 @@
 
 namespace EFCoreCodeFirstDemo.Entities
 {
-    [Table("StudentInfo")]  // Mapping the entity to StudentInfo table in dbo schema
+    [Table("StudentInfo", Schema = "Admin")]  // Mapping the entity to the StudentInfo table in Admin schema
     public class Student
     {
         public int StudentId { get; set; }
