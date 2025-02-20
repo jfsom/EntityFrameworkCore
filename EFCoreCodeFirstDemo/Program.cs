@@ -1,60 +1,70 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
+
 namespace EFCoreCodeFirstDemo
 {
-    class Program
+    internal class Program
     {
         static void Main(string[] args)
         {
-            using (var context = new EFCoreDbContext())
+            try
             {
-                //try
-                //{
-                //    Console.WriteLine("\nExplicit Loading Student Related Data\n");
+                using (var context = new EFCoreDbContext())
+                {
+                    // Creating a new order
+                    var order = new Order
+                    {
+                        OrderId = 1,
+                        CustomerId = 101,
+                        OrderDate = DateTime.Now
+                    };
 
-                //    // Load a student (only student data is loaded initially)
-                //    var student = context.Students.FirstOrDefault(s => s.StudentId == 1);
+                    Console.WriteLine($"Creating Order: OrderId = {order.OrderId}, CustomerId = {order.CustomerId}, OrderDate = {order.OrderDate}");
 
-                //    // Display basic student information
-                //    if (student != null)
-                //    {
-                //        Console.WriteLine($"\nStudent Id: {student.StudentId}, Name: {student.FirstName} {student.LastName}, Gender: {student.Gender} \n");
+                    // Adding the order to the context
+                    context.Orders.Add(order);
+                    Console.WriteLine("Order has been added to the context.");
 
-                //        // Explicitly load the Branch navigation property for the student
-                //        context.Entry(student).Reference(s => s.Branch).Load();
+                    // Creating the first order item
+                    var orderItem1 = new OrderItem
+                    {
+                        OrderId = 1,          // Composite foreign key part 1
+                        CustomerId = 101,     // Composite foreign key part 2
+                        ProductName = "Laptop",
+                        Quantity = 2
+                    };
 
-                //        // Check if Branch is null before accessing its properties
-                //        if (student.Branch != null)
-                //        {
-                //            Console.WriteLine($"\nBranch Location: {student.Branch.BranchLocation}, Email: {student.Branch.BranchEmail}, Phone: {student.Branch.BranchPhoneNumber} \n");
-                //        }
-                //        else
-                //        {
-                //            Console.WriteLine("\nBranch data not available.\n");
-                //        }
+                    Console.WriteLine($"Creating OrderItem 1: ProductName = {orderItem1.ProductName}, Quantity = {orderItem1.Quantity}");
 
-                //        // Explicitly load the Branch navigation property for the student
-                //        context.Entry(student).Reference(s => s.Branch).Load();
+                    // Adding the first order item to the context
+                    context.OrderItems.Add(orderItem1);
+                    Console.WriteLine("OrderItem 1 has been added to the context.");
 
-                //        // Check if Branch is null before accessing its properties
-                //        if (student.Branch != null)
-                //        {
-                //            Console.WriteLine($"\nBranch Location: {student.Branch.BranchLocation}, Email: {student.Branch.BranchEmail}, Phone: {student.Branch.BranchPhoneNumber} \n");
-                //        }
-                //        else
-                //        {
-                //            Console.WriteLine("\nBranch data not available.\n");
-                //        }
-                //    }
-                //    else
-                //    {
-                //        Console.WriteLine("Student data not found.");
-                //    }
-                //}
-                //catch (Exception ex)
-                //{
-                //    // Handle any errors that occur during data retrieval
-                //    Console.WriteLine($"An error occurred: {ex.Message}");
-                //}
+                    // Creating the second order item
+                    var orderItem2 = new OrderItem
+                    {
+                        OrderId = 1,          // Composite foreign key part 1
+                        CustomerId = 101,     // Composite foreign key part 2
+                        ProductName = "Desktop",
+                        Quantity = 1
+                    };
+
+                    Console.WriteLine($"Creating OrderItem 2: ProductName = {orderItem2.ProductName}, Quantity = {orderItem2.Quantity}");
+
+                    // Adding the second order item to the context
+                    context.OrderItems.Add(orderItem2);
+                    Console.WriteLine("OrderItem 2 has been added to the context.");
+
+                    // Saving all changes to the database
+                    context.SaveChanges();
+                    Console.WriteLine("Changes have been saved to the database.");
+                }
+
+                Console.WriteLine("Order Placed Successfully.");
+            }
+            catch (Exception ex)
+            {
+                // Handling any exceptions that occur during the execution
+                Console.WriteLine($"An error occurred: {ex.Message}");
             }
         }
     }

@@ -9,9 +9,7 @@ namespace EFCoreCodeFirstDemo.Entities
             optionsBuilder.UseSqlServer(@"Server=DESKTOP-RUC57UF;Database=StudentDB;Trusted_Connection=True;TrustServerCertificate=True;");
         }
 
-        // DbSet properties represent the tables in the database. 
-        // Each DbSet corresponds to a table, and the type parameter corresponds to the entity class mapped to that table.
-        public DbSet<Department> Departments { get; set; }
-        public DbSet<Employee> Employees { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
     }
 }
