@@ -2,11 +2,11 @@
 {
     public class Course
     {
-        public int CourseId { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public string Fees { get; set; }
-        public virtual ICollection<Student> Students { get; set; } //Marking the Property as Virtual to Support Lazy Loading
-        public virtual ICollection<Subject> Subjects { get; set; } //Marking the Property as Virtual to Support Lazy Loading
+        public int CourseId { get; set; }  // PK (INT, Identity)
+        public string Title { get; set; }  // NVARCHAR(MAX), NOT NULL
+        public double Credits { get; set; }  // FLOAT, NOT NULL
+        public int TeacherId { get; set; }  // FK to Teacher (INT, NOT NULL)
+        public virtual Teacher Teacher { get; set; }  // Navigation property
+        public virtual ICollection<Student> Students { get; set; }  // Many-to-Many relationship
     }
 }
