@@ -11,6 +11,7 @@ namespace EFCoreCodeFirstDemo.Entities
 
         // DbSet properties represent the tables in the database. 
         // Each DbSet corresponds to a table, and the type parameter corresponds to the entity class mapped to that table.
-        public DbSet<Student> Students { get; set; }
+        public DbSet<Department> Departments { get; set; }
+        public DbSet<Employee> Employees { get; set; }
     }
 }
