@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EFCoreCodeFirstDemo.Migrations
 {
     [DbContext(typeof(EFCoreDbContext))]
-    [Migration("20250220115841_KeyAttrribute")]
-    partial class KeyAttrribute
+    [Migration("20250220120750_AddCompositePrimaryKey")]
+    partial class AddCompositePrimaryKey
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -26,11 +26,11 @@ namespace EFCoreCodeFirstDemo.Migrations
 
             modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.Student", b =>
                 {
-                    b.Property<int>("StudentRegdNo")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("RegdNo")
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StudentRegdNo"));
+                    b.Property<int>("SerialNo")
+                        .HasColumnType("int");
 
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");
@@ -38,7 +38,7 @@ namespace EFCoreCodeFirstDemo.Migrations
                     b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("StudentRegdNo");
+                    b.HasKey("RegdNo", "SerialNo");
 
                     b.ToTable("Students");
                 });

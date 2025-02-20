@@ -1,10 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
 namespace EFCoreCodeFirstDemo.Entities
 {
+    [PrimaryKey(nameof(RegdNo), nameof(SerialNo))]
     public class Student
     {
-        [Key]
-        public int StudentRegdNo { get; set; }
+        public int RegdNo { get; set; }
+        public int SerialNo { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
     }

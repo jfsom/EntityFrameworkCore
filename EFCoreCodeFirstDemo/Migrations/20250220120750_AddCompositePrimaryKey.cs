@@ -5,7 +5,7 @@
 namespace EFCoreCodeFirstDemo.Migrations
 {
     /// <inheritdoc />
-    public partial class KeyAttrribute : Migration
+    public partial class AddCompositePrimaryKey : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -14,14 +14,14 @@ namespace EFCoreCodeFirstDemo.Migrations
                 name: "Students",
                 columns: table => new
                 {
-                    StudentRegdNo = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    RegdNo = table.Column<int>(type: "int", nullable: false),
+                    SerialNo = table.Column<int>(type: "int", nullable: false),
                     FirstName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LastName = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Students", x => x.StudentRegdNo);
+                    table.PrimaryKey("PK_Students", x => new { x.RegdNo, x.SerialNo });
                 });
         }
 
