@@ -9,8 +9,7 @@ namespace EFCoreCodeFirstDemo
             {
                 try
                 {
-                    // Lazy Loading Example
-                    Console.WriteLine("Lazy Loading Student and related data\n");
+                    Console.WriteLine("\nExplicit Loading Student Related Data\n");
 
                     // Load a student (only student data is loaded initially)
                     var student = context.Students.FirstOrDefault(s => s.StudentId == 1);
@@ -20,8 +19,8 @@ namespace EFCoreCodeFirstDemo
                     {
                         Console.WriteLine($"\nStudent Id: {student.StudentId}, Name: {student.FirstName} {student.LastName}, Gender: {student.Gender} \n");
 
-                        //Disabling Lazy Loading Here
-                        context.ChangeTracker.LazyLoadingEnabled = false;
+                        // Explicitly load the Branch navigation property for the student
+                        context.Entry(student).Reference(s => s.Branch).Load();
 
                         // Check if Branch is null before accessing its properties
                         if (student.Branch != null)
@@ -33,8 +32,9 @@ namespace EFCoreCodeFirstDemo
                             Console.WriteLine("\nBranch data not available.\n");
                         }
 
-                        //Enabling Lazy Loading Here
-                        context.ChangeTracker.LazyLoadingEnabled = true;
+                        // Explicitly load the Address navigation property for the student
+                        context.Entry(student).Reference(s => s.Address).Load();
+
                         // Check if Address is null before accessing its properties
                         if (student.Address != null)
                         {
@@ -56,9 +56,6 @@ namespace EFCoreCodeFirstDemo
                     Console.WriteLine($"An error occurred: {ex.Message}");
                 }
             }
-
-            // Final Output
-            Console.WriteLine("\nLazy loading of related entities completed.");
         }
     }
 }

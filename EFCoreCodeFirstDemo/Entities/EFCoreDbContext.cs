@@ -6,13 +6,19 @@ namespace EFCoreCodeFirstDemo.Entities
     // EFCoreDbContext is your custom DbContext class that extends the base DbContext class provided by EF Core.
     public class EFCoreDbContext : DbContext
     {
+        //Constructor calling the Base DbContext Class Constructor
+        public EFCoreDbContext() : base()
+        {
+            //Disabling Lazy Loading
+            this.ChangeTracker.LazyLoadingEnabled = false;
+        }   
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             // Display the generated SQL queries in the Console window
             optionsBuilder.LogTo(Console.WriteLine, LogLevel.Information);
 
             // Enable lazy loading 
-            optionsBuilder.UseLazyLoadingProxies();
+            //optionsBuilder.UseLazyLoadingProxies();
 
             // Configure the connection string
             optionsBuilder.UseSqlServer(@"Server=DESKTOP-RUC57UF;Database=StudentDB;Trusted_Connection=True;TrustServerCertificate=True;");
