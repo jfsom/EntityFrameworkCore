@@ -18,7 +18,6 @@ namespace EFCoreCodeFirstDemo.Entities
         public Department Department { get; set; }
 
         // Dynamically calculated property
-        [NotMapped]
         public int Tenure
         {
             get
@@ -34,7 +33,6 @@ namespace EFCoreCodeFirstDemo.Entities
             }
         }
 
-        [NotMapped]
         public int Age
         {
             get
@@ -50,7 +48,6 @@ namespace EFCoreCodeFirstDemo.Entities
             }
         }
 
-        [NotMapped]
         public string FullName => $"{FirstName} {LastName}";
     }
 }

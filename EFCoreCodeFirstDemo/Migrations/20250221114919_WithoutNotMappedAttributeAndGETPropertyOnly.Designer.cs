@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EFCoreCodeFirstDemo.Migrations
 {
     [DbContext(typeof(EFCoreDbContext))]
-    [Migration("20250221112818_FortheNotMappedAttribute")]
-    partial class FortheNotMappedAttribute
+    [Migration("20250221114919_WithoutNotMappedAttributeAndGETPropertyOnly")]
+    partial class WithoutNotMappedAttributeAndGETPropertyOnly
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

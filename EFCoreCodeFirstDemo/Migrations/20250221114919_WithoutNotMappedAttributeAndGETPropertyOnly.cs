@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EFCoreCodeFirstDemo.Migrations
 {
     /// <inheritdoc />
-    public partial class FortheNotMappedAttribute : Migration
+    public partial class WithoutNotMappedAttributeAndGETPropertyOnly : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
