@@ -1,7 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 namespace EFCoreCodeFirstDemo.Entities
 {
-    [Index(nameof(RegistrationNumber), nameof(RollNumber), IsDescending = new[] { false, true }, Name = "Index_RegistrationNumber_RollNumber")]
+    [Index(nameof(FirstName), nameof(LastName), Name = "Index_FirstName_LastName")]
+    [Index(nameof(RegistrationNumber), nameof(RollNumber), Name = "Index_RegistrationNumber_RollNumber")]
     public class Student
     {
         public int StudentId { get; set; }
