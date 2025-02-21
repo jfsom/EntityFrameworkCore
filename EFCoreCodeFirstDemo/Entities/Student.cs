@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 namespace EFCoreCodeFirstDemo.Entities
 {
-    [Index(nameof(RegistrationNumber))] // Index on the RegistrationNumber column
+    [Index(nameof(RegistrationNumber), Name = "Index_RegistrationNumber")]
     public class Student
     {
         public int StudentId { get; set; }
