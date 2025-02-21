@@ -9,7 +9,6 @@ namespace EFCoreCodeFirstDemo.Entities
             optionsBuilder.UseSqlServer(@"Server=DESKTOP-RUC57UF;Database=StudentDB;Trusted_Connection=True;TrustServerCertificate=True;");
         }
 
-        public DbSet<Order> Orders { get; set; }
-        public DbSet<OrderItem> OrderItems { get; set; }
+        public DbSet<Student> Students { get; set; }
     }
 }
