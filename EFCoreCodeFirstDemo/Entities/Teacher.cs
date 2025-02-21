@@ -5,5 +5,6 @@
         public int TeacherId { get; set; }
         public string? Name { get; set; }
         public ICollection<Course>? OnlineCourses { get; set; }
+        public ICollection<Course>? OfflineCourses { get; set; }
     }
 }
