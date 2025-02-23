@@ -1,88 +1,117 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using EFCoreCodeFirstDemo.Entities;
+using System;
+using System.Linq;
 
 namespace EFCoreCodeFirstDemo
 {
-    class Program
+    public class Program
     {
         static void Main(string[] args)
         {
             try
             {
-                // Initialize the database context
-                using (var context = new EFCoreDbContext())
-                {
-                    // Create managers and their subordinates
-                    InsertEmployees(context);
+                // Adding categories and products to the database
+                AddCategories();
 
-                    // Fetch and display the tree structure
-                    DisplayEmployeesTree(context);
-                }
+                // Displaying all categories, subcategories, and products in level 3 categories
+                DisplayCategories();
             }
             catch (DbUpdateException ex)
             {
-                // Exception Database Exception
+                // Exception handling to catch database errors, showing the inner exception if available
                 Console.WriteLine($"Database Error: {ex.InnerException?.Message ?? ex.Message}");
             }
             catch (Exception ex)
             {
-                // Exception handling to catch any errors
-                Console.WriteLine($"Error occurred: {ex.Message}");
+                // Exception handling for any other errors
+                Console.WriteLine($"An error occurred: {ex.Message}");
             }
         }
 
-        // Method to insert a manager and their subordinates
-        static void InsertEmployees(EFCoreDbContext context)
+        // Method to add categories and products to the database
+        static void AddCategories()
         {
-            // Check if the database already has employees
-            if (context.Employees.Any())
+            using var context = new EFCoreDbContext();
+
+            // Check if the database already has products to avoid duplication
+            if (context.Products.Any())
             {
-                Console.WriteLine("Employees already exist in the database.\n");
+                Console.WriteLine("Products and Categories already exist in the database.\n");
                 return;
             }
 
-            // Create two manager employees
-            var manager1 = new Employee { Name = "Alice Manager" };
-            var manager2 = new Employee { Name = "Bob Manager" };
+            // Creating categories (Level 1 → Level 2 → Level 3)
+            var electronics = new Category { Name = "Electronics" }; // Level 1
+            var computers = new Category { Name = "Computers", ParentCategory = electronics }; // Level 2
+            var laptops = new Category { Name = "Laptops", ParentCategory = computers }; // Level 3
 
-            // Create subordinates under manager1
-            var subordinate1 = new Employee { Name = "Charlie Employee", Manager = manager1 };
-            var subordinate2 = new Employee { Name = "David Employee", Manager = manager1 };
+            var phones = new Category { Name = "Phones", ParentCategory = electronics }; // Level 2
+            var smartPhones = new Category { Name = "Smartphones", ParentCategory = phones }; // Level 3
 
-            // Create subordinates under manager2
-            var subordinate3 = new Employee { Name = "Eve Employee", Manager = manager2 };
-            var subordinate4 = new Employee { Name = "Frank Employee", Manager = manager2 };
-            var subordinate5 = new Employee { Name = "Grace Employee", Manager = manager2 };
+            // Creating categories (Level 1 → Level 2 → Level 3)
+            var homeAppliances = new Category { Name = "Home Appliances" }; // Level 1
+            var kitchen = new Category { Name = "Kitchen", ParentCategory = homeAppliances }; // Level 2
+            var coffeeMachines = new Category { Name = "Coffee Machines", ParentCategory = kitchen }; // Level 3
 
-            // Add managers and subordinates to the context
-            context.Employees.AddRange(manager1, manager2, subordinate1, subordinate2, subordinate3, subordinate4, subordinate5);
+            // Creating products for each category
+            var product1 = new Product { Name = "Dell Laptop", Price = 899.99M, Category = laptops };
+            var product2 = new Product { Name = "HP Laptop", Price = 799.99M, Category = laptops };
+            var product3 = new Product { Name = "Espresso Machine", Price = 199.99M, Category = coffeeMachines };
+            var product4 = new Product { Name = "iPhone 13", Price = 999.99M, Category = smartPhones };
+            var product5 = new Product { Name = "Samsung Galaxy S21", Price = 899.99M, Category = smartPhones };
 
-            // Save changes to the database
+            // Adding categories and products to the database
+            context.Categories.AddRange(electronics, computers, laptops, homeAppliances, kitchen, coffeeMachines, phones, smartPhones);
+            context.Products.AddRange(product1, product2, product3, product4, product5);
             context.SaveChanges();
 
-            Console.WriteLine("Managers and their subordinates have been successfully added to the database.\n");
+            // Confirmation message after seeding data
+            Console.WriteLine("Categories and Products added successfully.\n");
         }
 
-        // Method to display employees in a tree structure
-        static void DisplayEmployeesTree(EFCoreDbContext context)
+        // Method to fetch and display all categories, subcategories, and products for level 3 categories
+        static void DisplayCategories()
         {
-            // Retrieve managers along with their subordinates from the database
-            var managers = context.Employees
-                .Include(e => e.Subordinates) // Include subordinates in the query
-                .Where(e => e.ManagerId == null) // Only select employees who are managers (no ManagerId)
+            using var context = new EFCoreDbContext();
+
+            // Fetch top-level categories (ParentCategoryId is null) and include subcategories and products
+            var categories = context.Categories
+                .Include(c => c.Subcategories)
+                    .ThenInclude(c => c.Subcategories)
+                        .ThenInclude(c => c.Products)  // Include products for level 3 categories
+                .Where(c => c.ParentCategoryId == null)  // Fetch only top-level categories
                 .ToList();
 
-            // Display the managers and their subordinates
-            foreach (var manager in managers)
+            // Display all categories in a hierarchical format
+            Console.WriteLine("All Categories, Subcategories, and Products (in level 3 categories):");
+            foreach (var category in categories)
             {
-                Console.WriteLine($"Manager Id: {manager.EmployeeId}, Name: {manager.Name}");
-                foreach (var subordinate in manager.Subordinates)
+                Console.WriteLine($"\nCategory: {category.Name}");  // Level 1
+                foreach (var subcategory in category.Subcategories)
                 {
-                    Console.WriteLine($"\tSubordinate: Id:{subordinate.EmployeeId}, Name:{subordinate.Name}");
-                }
+                    Console.WriteLine($"  Subcategory: {subcategory.Name}");  // Level 2
+                    foreach (var subSubcategory in subcategory.Subcategories)
+                    {
+                        Console.WriteLine($"    Sub-Subcategory: {subSubcategory.Name}");  // Level 3
 
-                Console.WriteLine(); //Line Spacing for better viewability
+                        // Display products under each Level 3 category
+                        if (subSubcategory.Products.Any())
+                        {
+                            Console.WriteLine("         Products:");
+                            foreach (var product in subSubcategory.Products)
+                            {
+                                Console.WriteLine($"            - {product.Name} (${product.Price})");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("            No products in this category.");
+                        }
+                    }
+                }
             }
+            Console.WriteLine();  // New line for better output formatting
         }
     }
 }
