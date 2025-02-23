@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EFCoreCodeFirstDemo.Migrations
 {
     [DbContext(typeof(EFCoreDbContext))]
-    [Migration("20250223153441_CreateStudentCourseTables")]
-    partial class CreateStudentCourseTables
+    [Migration("20250223153748_CreateStudentCourseTablesWithFluentAPI")]
+    partial class CreateStudentCourseTablesWithFluentAPI
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -36,7 +36,7 @@ namespace EFCoreCodeFirstDemo.Migrations
 
                     b.HasIndex("StudentsId");
 
-                    b.ToTable("CourseStudent");
+                    b.ToTable("StudentCourses", (string)null);
                 });
 
             modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.Course", b =>

@@ -5,7 +5,7 @@
 namespace EFCoreCodeFirstDemo.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateStudentCourseTables : Migration
+    public partial class CreateStudentCourseTablesWithFluentAPI : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -37,7 +37,7 @@ namespace EFCoreCodeFirstDemo.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CourseStudent",
+                name: "StudentCourses",
                 columns: table => new
                 {
                     CoursesId = table.Column<int>(type: "int", nullable: false),
@@ -45,15 +45,15 @@ namespace EFCoreCodeFirstDemo.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CourseStudent", x => new { x.CoursesId, x.StudentsId });
+                    table.PrimaryKey("PK_StudentCourses", x => new { x.CoursesId, x.StudentsId });
                     table.ForeignKey(
-                        name: "FK_CourseStudent_Courses_CoursesId",
+                        name: "FK_StudentCourses_Courses_CoursesId",
                         column: x => x.CoursesId,
                         principalTable: "Courses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_CourseStudent_Students_StudentsId",
+                        name: "FK_StudentCourses_Students_StudentsId",
                         column: x => x.StudentsId,
                         principalTable: "Students",
                         principalColumn: "Id",
@@ -61,8 +61,8 @@ namespace EFCoreCodeFirstDemo.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_CourseStudent_StudentsId",
-                table: "CourseStudent",
+                name: "IX_StudentCourses_StudentsId",
+                table: "StudentCourses",
                 column: "StudentsId");
         }
 
@@ -70,7 +70,7 @@ namespace EFCoreCodeFirstDemo.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "CourseStudent");
+                name: "StudentCourses");
 
             migrationBuilder.DropTable(
                 name: "Courses");

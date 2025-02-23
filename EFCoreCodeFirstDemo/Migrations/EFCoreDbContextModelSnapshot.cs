@@ -33,7 +33,7 @@ namespace EFCoreCodeFirstDemo.Migrations
 
                     b.HasIndex("StudentsId");
 
-                    b.ToTable("CourseStudent");
+                    b.ToTable("StudentCourses", (string)null);
                 });
 
             modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.Course", b =>
