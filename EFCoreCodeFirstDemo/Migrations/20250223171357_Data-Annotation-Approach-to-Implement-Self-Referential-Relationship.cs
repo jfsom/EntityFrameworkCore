@@ -5,7 +5,7 @@
 namespace EFCoreCodeFirstDemo.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class DataAnnotationApproachtoImplementSelfReferentialRelationship : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

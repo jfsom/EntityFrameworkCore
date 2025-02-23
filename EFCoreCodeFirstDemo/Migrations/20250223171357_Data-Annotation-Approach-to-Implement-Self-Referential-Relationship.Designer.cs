@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EFCoreCodeFirstDemo.Migrations
 {
     [DbContext(typeof(EFCoreDbContext))]
-    [Migration("20250223164241_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250223171357_Data-Annotation-Approach-to-Implement-Self-Referential-Relationship")]
+    partial class DataAnnotationApproachtoImplementSelfReferentialRelationship
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
