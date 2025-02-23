@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EFCoreCodeFirstDemo.Migrations
 {
     [DbContext(typeof(EFCoreDbContext))]
-    [Migration("20250223073330_One-to-OneRelationshipsinEntityFrameworkCore_withdataannotations_and_fluent_API")]
-    partial class OnetoOneRelationshipsinEntityFrameworkCore_withdataannotations_and_fluent_API
+    [Migration("20250223073702_One-to-OneRelationshipsinEntityFrameworkCore_with_fluent_API")]
+    partial class OnetoOneRelationshipsinEntityFrameworkCore_with_fluent_API
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

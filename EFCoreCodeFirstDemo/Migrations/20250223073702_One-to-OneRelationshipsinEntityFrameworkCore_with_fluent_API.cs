@@ -5,7 +5,7 @@
 namespace EFCoreCodeFirstDemo.Migrations
 {
     /// <inheritdoc />
-    public partial class OnetoOneRelationshipsinEntityFrameworkCore : Migration
+    public partial class OnetoOneRelationshipsinEntityFrameworkCore_with_fluent_API : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
