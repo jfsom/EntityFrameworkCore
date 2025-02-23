@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EFCoreCodeFirstDemo.Migrations
 {
     [DbContext(typeof(EFCoreDbContext))]
-    [Migration("20250223145200_CreateOrderTablesUsingDataAnnotation")]
-    partial class CreateOrderTablesUsingDataAnnotation
+    [Migration("20250223145456_CreateOrderTablesUsingFluentAPI")]
+    partial class CreateOrderTablesUsingFluentAPI
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
