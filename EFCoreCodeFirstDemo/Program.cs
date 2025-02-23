@@ -1,93 +1,113 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
-
 namespace EFCoreCodeFirstDemo
 {
-    internal class Program
+    public class Program
     {
+        // Define the quantities each user is booking
+        private static int userAQuantity = 3;
+        private static int userBQuantity = 7;
+
         static void Main(string[] args)
         {
-            using (var context = new EFCoreDbContext())
+            try
             {
-                // Ensure the database is fresh by deleting and recreating it
-                context.Database.EnsureDeleted(); // Delete existing database
-                context.Database.EnsureCreated(); // Create new database based on the model
+                //This Propetry will store the Initia Stock
+                int InitialStock = 0;
 
-                // Seed Data
-                Console.WriteLine("Seeding data into the database...");
-
-                // Create a new product
-                var product = new Product
+                // Get initial stock from database before any booking
+                using (var context = new EFCoreDbContext())
                 {
-                    ProductId = Guid.NewGuid(), // PK without Identity; must provide a unique value
-                    Name = "Laptop",
-                    Category = "ELECT",
-                    Price = 1500.00m,
-                    Quantity = 10,
-                };
-                context.Products.Add(product);
+                    var initialProduct = context.Products.Find(1);
+                    InitialStock = initialProduct?.StockQuantity ?? 0;
+                    Console.WriteLine($"Initial stock in database: {initialProduct?.StockQuantity}");
+                }
 
-                // Create a new customer
-                var customer = new Customer
+                // Create two threads to simulate concurrent transactions
+                Thread t1 = new Thread(Method1); // Thread for User A's transaction
+                Thread t2 = new Thread(Method2); // Thread for User B's transaction
+
+                Console.WriteLine("Booking Started by User A and User B");
+
+                // Start both threads for User A and User B
+                t1.Start();
+                t2.Start();
+
+                // Ensure both threads finish before proceeding
+                t1.Join();
+                t2.Join();
+
+                // After the transactions get the final stock in the database
+                using (var context = new EFCoreDbContext())
                 {
-                    // CustomerId is a computed column
-                    // SerialNumber is Identity and will be auto-generated
-                    Name = "Pranaya Rout",
-                    Email = "pranaya.rout@example.com",
-                    PhoneNumber = "123-456-7890"
-                };
-                context.Customers.Add(customer);
+                    var finalProduct = context.Products.Find(1); // Fetch product with Id 1
+                    int expectedFinalStock = InitialStock - (userAQuantity + userBQuantity); // Calculate the expected final stock
 
-                // Save changes to generate identity and computed fields for Product and Customer
+                    Console.WriteLine($"Expected final stock (Initial stock - User A booking - User B booking): {expectedFinalStock}");
+                    Console.WriteLine($"Final stock in database: {finalProduct?.StockQuantity}");
+
+                    if (finalProduct != null && finalProduct.StockQuantity == expectedFinalStock)
+                    {
+                        Console.WriteLine("Final stock is correct.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Final stock is incorrect. There may be a concurrency issue.");
+                    }
+                }
+
+                Console.ReadKey(); // Wait for user to press a key before exiting
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}"); // Catch and log any errors
+            }
+        }
+
+        // User A | Transaction 1 | Booking 3 items
+        public static void Method1()
+        {
+            using EFCoreDbContext context = new EFCoreDbContext(); // Create a new DB context
+
+            // Fetch product with Id 1
+            var product1 = context.Products.Find(1);
+
+            // Simulate delay (2 seconds) to mimic real-world concurrency issues
+            Thread.Sleep(TimeSpan.FromSeconds(2));
+
+            if (product1 != null) // Ensure product exists
+            {
+                // Update stock quantity for User A's booking
+                product1.StockQuantity -= userAQuantity;
+
+                // Save changes to the database
                 context.SaveChanges();
 
-                // Create a new order
-                var order = new Order
-                {
-                    // OrderId is Identity and will be auto-generated
-                    CustomerId = customer.CustomerId,
-                    TotalAmount = 1500.00m
-                    // OrderDate has Default value as current date
-                    // Status has a default value of Pending
-                };
-                context.Orders.Add(order);
+                // Log how many quantities User A booked and the new stock quantity
+                Console.WriteLine($"User A booked {userAQuantity} items. Updated stock after User A: {product1.StockQuantity}");
+            }
+        }
 
-                // Save changes to generate identity and computed fields for Order
+        // User B | Transaction 2 | Booking 7 items
+        public static void Method2()
+        {
+            using EFCoreDbContext context = new EFCoreDbContext(); // Create a new DB context
+
+            // Fetch product with Id 1
+            var product1 = context.Products.Find(1);
+
+            // Simulate delay (5 seconds) to allow time for potential concurrency conflict
+            Thread.Sleep(TimeSpan.FromSeconds(5));
+
+            if (product1 != null) // Ensure product exists
+            {
+                // Update stock quantity for User B's booking
+                product1.StockQuantity -= userBQuantity;
+
+                // Save changes to the database
                 context.SaveChanges();
 
-                // Create a new order item
-                var orderItem = new OrderItem
-                {
-                    // OrderItemId is Identity and will be auto-generated
-                    OrderId = order.OrderId, // FK to Order.OrderId
-                    ProductId = product.ProductId, // FK to Product.ProductId
-                    Quantity = 1,
-                    Price = 1500.00m
-                    // TotalPrice is a computed column based on Quantity * Price
-                };
-                context.OrderItems.Add(orderItem);
-
-                // Save changes to generate identity and computed fields for OrderItem
-                context.SaveChanges();
-
-                // Display the data
-                Console.WriteLine("\nData saved successfully. Displaying the data:\n");
-
-                // Use the entities we have in memory, which have been updated with database-generated values
-                Console.WriteLine($"Product:");
-                Console.WriteLine($"\tProductId: {product.ProductId}, Name: {product.Name}, SerialNumber: {product.SerialNumber}");
-                Console.WriteLine($"\tSKU: {product.SKU}, CreatedOn: {product.CreatedOn}, CreatedBy: {product.CreatedBy}");
-
-                Console.WriteLine($"\nCustomer:");
-                Console.WriteLine($"\tCustomerId: {customer.CustomerId}, Name: {customer.Name}");
-                Console.WriteLine($"\tEmail: {customer.Email}, PhoneNumber: {customer.PhoneNumber}");
-
-                Console.WriteLine($"\nOrder:");
-                Console.WriteLine($"\tOrderId: {order.OrderId}, TotalAmount: {order.TotalAmount}, OrderDate: {order.OrderDate}");
-                Console.WriteLine($"\tStatus: {order.Status}, CustomerId: {order.CustomerId}");
-
-                Console.WriteLine($"\nOrderItem:");
-                Console.WriteLine($"\tOrderItemId: {orderItem.OrderItemId}, OrderId: {orderItem.OrderId}, ProductId: {orderItem.ProductId}");
-                Console.WriteLine($"\tQuantity: {orderItem.Quantity}, Price: {orderItem.Price}, TotalPrice: {orderItem.TotalPrice}");
+                // Log how many quantities User B booked and the new stock quantity
+                Console.WriteLine($"User B booked {userBQuantity} items. Updated stock after User B: {product1.StockQuantity}");
             }
         }
     }
