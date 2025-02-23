@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EFCoreCodeFirstDemo.Migrations
 {
     [DbContext(typeof(EFCoreDbContext))]
-    [Migration("20250221122647_TableColumnsCreationBasedOnNullableAndNonNullableProperty")]
-    partial class TableColumnsCreationBasedOnNullableAndNonNullableProperty
+    [Migration("20250221133605_Required_AllowEmptyStrings_false")]
+    partial class Required_AllowEmptyStrings_false
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -36,6 +36,7 @@ namespace EFCoreCodeFirstDemo.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("RollNumber")

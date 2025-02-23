@@ -14,7 +14,7 @@ namespace EFCoreCodeFirstDemo
                 // Creating a Student object with an empty Name
                 Student student = new Student
                 {
-                    Name = string.Empty, // Empty string is allowed
+                    Name = String.Empty, // Empty string is allowed
                     Address = "456 Main St",
                     RollNumber = 102
                 };
