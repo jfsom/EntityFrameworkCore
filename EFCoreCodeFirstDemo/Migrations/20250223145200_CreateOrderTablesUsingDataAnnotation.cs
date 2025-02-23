@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EFCoreCodeFirstDemo.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateOrderTables : Migration
+    public partial class CreateOrderTablesUsingDataAnnotation : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
