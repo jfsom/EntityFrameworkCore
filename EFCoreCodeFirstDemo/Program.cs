@@ -1,99 +1,94 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
-using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
 
 namespace EFCoreCodeFirstDemo
 {
-    class Program
+    internal class Program
     {
         static void Main(string[] args)
         {
-            // Initialize the DbContext (using a 'using' statement ensures proper resource disposal)
             using (var context = new EFCoreDbContext())
             {
-                // Display an informative message for user input
-                Console.WriteLine("Please enter the student information:");
+                // Ensure the database is fresh by deleting and recreating it
+                context.Database.EnsureDeleted(); // Delete existing database
+                context.Database.EnsureCreated(); // Create new database based on the model
 
-                // Capture the student's first name
-                Console.Write("First Name (Max 50 characters): ");
-                string? firstName = Console.ReadLine();
+                // Seed Data
+                Console.WriteLine("Seeding data into the database...");
 
-                // Capture the student's last name
-                Console.Write("Last Name (Min 5 characters): ");
-                string? lastName = Console.ReadLine();
-
-                try
+                // Create a new product
+                var product = new Product
                 {
-                    // Validate the Student entity manually before saving to ensure it meets constraints
-                    var student = new Student
-                    {
-                        FirstName = firstName,
-                        LastName = lastName
-                    };
+                    ProductId = Guid.NewGuid(), // PK without Identity; must provide a unique value
+                    Name = "Laptop",
+                    Category = "ELECT",
+                    Price = 1500.00m,
+                    Quantity = 10,
+                };
+                context.Products.Add(product);
 
-                    // Perform validation using the DataAnnotationsValidator
-                    ValidateStudent(student); // This method will throw an exception if validation fails
+                // Create a new customer
+                var customer = new Customer
+                {
+                    // CustomerId is a computed column
+                    // SerialNumber is Identity and will be auto-generated
+                    Name = "Pranaya Rout",
+                    Email = "pranaya.rout@example.com",
+                    PhoneNumber = "123-456-7890"
+                };
+                context.Customers.Add(customer);
 
-                    // If validation passes, add the student to the DbSet and save changes to the database
-                    context.Students.Add(student);
-                    context.SaveChanges();
+                // Save changes to generate identity and computed fields for Product and Customer
+                context.SaveChanges();
 
-                    // Inform the user that the data has been successfully saved
-                    Console.WriteLine("Student information has been saved successfully!");
-                }
-                catch (ValidationException ex) // Catch validation errors (MaxLength, MinLength, etc.)
+                // Create a new order
+                var order = new Order
                 {
-                    // Display the validation error message to the user
-                    Console.WriteLine($"Validation error: {ex.Message}");
-                }
-                catch (DbUpdateException dbEx) // Catch any database update errors
-                {
-                    // Handle potential database errors and provide a meaningful message
-                    Console.WriteLine($"Database update error: {dbEx.InnerException?.Message ?? dbEx.Message}");
-                }
-                catch (Exception ex) // Catch any other general exceptions
-                {
-                    // Display a general error message
-                    Console.WriteLine($"An error occurred: {ex.Message}");
-                }
+                    // OrderId is Identity and will be auto-generated
+                    CustomerId = customer.CustomerId,
+                    TotalAmount = 1500.00m
+                    // OrderDate has Default value as current date
+                    // Status has a default value of Pending
+                };
+                context.Orders.Add(order);
 
-                // Output the list of all students to show the saved records
-                var students = context.Students.ToList();
-                Console.WriteLine("\nList of Students in Database:");
-                foreach (var stud in students)
+                // Save changes to generate identity and computed fields for Order
+                context.SaveChanges();
+
+                // Create a new order item
+                var orderItem = new OrderItem
                 {
-                    Console.WriteLine($"Student ID: {stud.StudentId}, First Name: {stud.FirstName}, Last Name: {stud.LastName}");
-                }
+                    // OrderItemId is Identity and will be auto-generated
+                    OrderId = order.OrderId, // FK to Order.OrderId
+                    ProductId = product.ProductId, // FK to Product.ProductId
+                    Quantity = 1,
+                    Price = 1500.00m
+                    // TotalPrice is a computed column based on Quantity * Price
+                };
+                context.OrderItems.Add(orderItem);
+
+                // Save changes to generate identity and computed fields for OrderItem
+                context.SaveChanges();
+
+                // Display the data
+                Console.WriteLine("\nData saved successfully. Displaying the data:\n");
+
+                // Use the entities we have in memory, which have been updated with database-generated values
+                Console.WriteLine($"Product:");
+                Console.WriteLine($"\tProductId: {product.ProductId}, Name: {product.Name}, SerialNumber: {product.SerialNumber}");
+                Console.WriteLine($"\tSKU: {product.SKU}, CreatedOn: {product.CreatedOn}, CreatedBy: {product.CreatedBy}");
+
+                Console.WriteLine($"\nCustomer:");
+                Console.WriteLine($"\tCustomerId: {customer.CustomerId}, Name: {customer.Name}");
+                Console.WriteLine($"\tEmail: {customer.Email}, PhoneNumber: {customer.PhoneNumber}");
+
+                Console.WriteLine($"\nOrder:");
+                Console.WriteLine($"\tOrderId: {order.OrderId}, TotalAmount: {order.TotalAmount}, OrderDate: {order.OrderDate}");
+                Console.WriteLine($"\tStatus: {order.Status}, CustomerId: {order.CustomerId}");
+
+                Console.WriteLine($"\nOrderItem:");
+                Console.WriteLine($"\tOrderItemId: {orderItem.OrderItemId}, OrderId: {orderItem.OrderId}, ProductId: {orderItem.ProductId}");
+                Console.WriteLine($"\tQuantity: {orderItem.Quantity}, Price: {orderItem.Price}, TotalPrice: {orderItem.TotalPrice}");
             }
-        }
-
-        // Custom method to perform validation on the Student entity
-        public static void ValidateStudent(Student student)
-        {
-            // Create a ValidationContext object.
-            // This object contains information about the object being validated (student in this case).
-            // It is used by the Validator to perform validation according to the attributes (like MaxLength, MinLength) applied on the Student entity.
-            // The 'null' values are placeholders for services or items that could be used by the ValidationContext (we don’t need them here, hence null).
-            var validationContext = new ValidationContext(student, null, null);
-
-            // Create a list to hold the results of the validation.
-            // Each item in this list will be a ValidationResult, 
-            // which will contain information about any validation errors that occur.
-            var validationResults = new List<ValidationResult>();
-
-            // TryValidateObject is a method from the Validator class that checks if the given object (student)
-            // satisfies the validation rules specified by the data annotations (MaxLength, MinLength, etc.).
-            // - The 'true' flag at the end ensures that all properties of the object (student) are validated.
-            // - If validation fails, the validation errors are added to the 'validationResults' list.
-            if (!Validator.TryValidateObject(student, validationContext, validationResults, true))
-            {
-                // If validation results contain errors (i.e., TryValidateObject returns false),
-                // throw a ValidationException to indicate that validation failed.
-                // We extract the first validation error from the 'validationResults' list and use its error message.
-                throw new ValidationException(validationResults.First().ErrorMessage);
-            }
-
-            // If no validation errors occur, the method simply completes, allowing the caller to proceed without error.
         }
     }
 }

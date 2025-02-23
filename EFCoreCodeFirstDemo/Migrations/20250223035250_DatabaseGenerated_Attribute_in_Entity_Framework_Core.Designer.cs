@@ -4,6 +4,7 @@ using EFCoreCodeFirstDemo.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EFCoreCodeFirstDemo.Migrations
 {
     [DbContext(typeof(EFCoreDbContext))]
-    partial class EFCoreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250223035250_DatabaseGenerated_Attribute_in_Entity_Framework_Core")]
+    partial class DatabaseGenerated_Attribute_in_Entity_Framework_Core
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
