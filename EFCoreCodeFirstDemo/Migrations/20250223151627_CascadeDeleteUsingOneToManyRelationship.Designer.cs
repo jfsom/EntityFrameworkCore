@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EFCoreCodeFirstDemo.Migrations
 {
     [DbContext(typeof(EFCoreDbContext))]
-    [Migration("20250223145456_CreateOrderTablesUsingFluentAPI")]
-    partial class CreateOrderTablesUsingFluentAPI
+    [Migration("20250223151627_CascadeDeleteUsingOneToManyRelationship")]
+    partial class CascadeDeleteUsingOneToManyRelationship
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

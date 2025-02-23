@@ -1,57 +1,71 @@
-﻿using System;
-namespace FluentInterfaceDesignPattern
+﻿using EFCoreCodeFirstDemo.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace EFCoreCodeFirstDemo
 {
-    public class Program
+    internal class Program
     {
         static void Main(string[] args)
         {
-            FluentStudent student = new FluentStudent();
-            student.StudentRegedNumber("BQPPR123456")
-                   .NameOfTheStudent("Pranaya Rout")
-                   .BornOn("10/10/1992")
-                   .StudyOn("CSE")
-                   .StaysAt("BBSR, Odisha");
+            try
+            {
+                // Step 1: Initialize the DbContext
+                using var context = new EFCoreDbContext();
 
-            Console.Read();
-        }
-    }
+                // Step 2: Retrieve an order to delete (in this case, we're deleting the order with ID 1)
+                var orderToDelete = context.Orders
+                    .Include(ord => ord.OrderItems) //Eager Load the Related Order Items
+                    .FirstOrDefault(o => o.Id == 1); // Retrieve order with ID = 1
 
-    public class Student
-    {
-        public string RegdNo { get; set; }
-        public string Name { get; set; }
-        public DateTime DOB { get; set; }
-        public string Branch { get; set; }
-        public string Address { get; set; }
-    }
+                if (orderToDelete != null)
+                {
+                    // Output the order details before deletion
+                    Console.WriteLine($"Order to be deleted: {orderToDelete.OrderNumber}");
 
-    public class FluentStudent
-    {
-        private Student student = new Student();
-        public FluentStudent StudentRegedNumber(string RegdNo)
-        {
-            student.RegdNo = RegdNo;
-            return this;
-        }
-        public FluentStudent NameOfTheStudent(string Name)
-        {
-            student.Name = Name;
-            return this;
-        }
-        public FluentStudent BornOn(string DOB)
-        {
-            student.DOB = Convert.ToDateTime(DOB);
-            return this;
-        }
-        public FluentStudent StudyOn(string Branch)
-        {
-            student.Branch = Branch;
-            return this;
-        }
-        public FluentStudent StaysAt(string Address)
-        {
-            student.Address = Address;
-            return this;
+                    // Output the related order items before deletion
+                    foreach (var item in orderToDelete.OrderItems)
+                    {
+                        Console.WriteLine($"\tOrderItemId: {item.Id}, Product Name: {item.ProductName}");
+                    }
+
+                    // Step 3: Delete the order
+                    context.Orders.Remove(orderToDelete); // Remove the order (this will trigger cascade delete for related order items)
+
+                    // Step 4: Save the changes to the database
+                    context.SaveChanges(); // This will delete the order and its related order items (due to cascade delete)
+
+                    // Output the success message
+                    Console.WriteLine($"Order '{orderToDelete.OrderNumber}' and its related items were successfully deleted.");
+                }
+                else
+                {
+                    // Output if the order with the specified ID was not found
+                    Console.WriteLine("Order not found. No deletion performed.");
+                }
+
+                // Step 5: Verify that the order and related order items are deleted by attempting to retrieve them again
+                var deletedOrder = context.Orders.FirstOrDefault(o => o.Id == 1); // Trying to find the deleted order
+                if (deletedOrder == null)
+                {
+                    Console.WriteLine("Order with ID 1 has been deleted from the database.");
+                }
+
+                // Verify the related OrderItems are also deleted
+                var deletedOrderItems = context.OrderItems.Where(oi => oi.OrderId == 1).ToList();
+                if (deletedOrderItems.Count == 0)
+                {
+                    Console.WriteLine("All related OrderItems for Order ID 1 have been deleted.");
+                }
+                else
+                {
+                    Console.WriteLine("Some OrderItems for Order ID 1 are still present, which should not happen with Cascade delete.");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle any errors that occur during the operation
+                Console.WriteLine($"An error occurred: {ex.Message}");
+            }
         }
     }
 }
