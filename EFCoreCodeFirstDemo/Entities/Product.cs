@@ -1,11 +1,13 @@
-﻿namespace EFCoreCodeFirstDemo.Entities
+﻿using System.ComponentModel.DataAnnotations.Schema;
+namespace EFCoreCodeFirstDemo.Entities
 {
-    public class Product : ITimestampedEntity
+    public class Product
     {
-        public int Id { get; set; }
-        public string Name { get; set; } // We will apply a default max length
-        public decimal Price { get; set; } // We will set default precision                               
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
+        public int ProductId { get; set; } // Primary Key
+        public string Name { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal Price { get; set; }
+        public string Description { get; set; }
+        public ICollection<OrderItem> OrderItems { get; set; }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EFCoreCodeFirstDemo.Entities
 {
     public class EFCoreDbContext : DbContext
@@ -12,119 +11,71 @@ namespace EFCoreCodeFirstDemo.Entities
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Apply global configurations
-
-            // Set the default schema for the database to "Admin"
-            modelBuilder.HasDefaultSchema("Admin");
-
-            // Set default precision and scale for all decimal properties
-            foreach (var property in modelBuilder.Model.GetEntityTypes()
-                // Select all properties from all entity types
-                .SelectMany(t => t.GetProperties())
-                // Filter properties to those of type decimal or nullable decimal
-                .Where(p => p.ClrType == typeof(decimal) || p.ClrType == typeof(decimal?)))
+            // Configuring the Customer entity
+            modelBuilder.Entity<Customer>(entity =>
             {
-                // Set the precision to 18 (total number of digits)
-                property.SetPrecision(18);
+                // Setting the table name and schema
+                entity.ToTable("tblCustomer", schema: "Admin");
 
-                // Set the scale to 3 (digits after the decimal point)
-                property.SetScale(3);
-            }
+                // Setting the primary key
+                entity.HasKey(c => c.CustomerId);
 
-            // Set default max length for string properties
-            // Loop through all entity types in the model
-            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+                // Setting alternate key (unique constraint) on Email
+                entity.HasAlternateKey(c => c.Email);
+
+                // Configuring indexes
+                entity.HasIndex(c => c.Email).IsUnique();
+
+                // Configuring the owned entity Address
+                entity.OwnsOne(c => c.Address);
+
+                // Configuring One to Many Relationships Between Customer and Order
+                entity.HasMany(c => c.Orders)
+                    .WithOne(o => o.Customer)
+                    .HasForeignKey(o => o.CustomerId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configuring the Product entity
+            modelBuilder.Entity<Product>(entity =>
             {
-                // Get all properties of type string
-                var stringProperties = entityType.GetProperties()
-                    .Where(p => p.ClrType == typeof(string));
+                // Setting the primary key
+                entity.HasKey(p => p.ProductId);
+            });
 
-                // Set default max length for each string property if no max length is already defined
-                foreach (var property in stringProperties)
-                {
-                    if (property.GetMaxLength() == null) // Check if the max length is not already set
-                    {
-                        property.SetMaxLength(200); // Set the default max length to 200 characters
-                    }
-                }
-            }
-
-            // Store enums as strings
-            // Loop through all entity types in the model
-            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            // Configuring the Order entity
+            modelBuilder.Entity<Order>(entity =>
             {
-                // Get all properties of type Enum (enumerations)
-                var enumProperties = entityType.GetProperties()
-                    .Where(p => p.ClrType.IsEnum);
+                // Setting the primary key
+                entity.HasKey(o => o.OrderId);
 
-                foreach (var property in enumProperties)
-                {
-                    // Get the CLR type of the enum
-                    var enumType = property.ClrType;
+                // Store the enum as string
+                entity.Property(o => o.Status)
+                    .HasConversion<string>();
 
-                    // Dynamically Create a generic EnumToStringConverter for the specific enum type
-                    var converterType = typeof(EnumToStringConverter<>).MakeGenericType(enumType);
-                    var converter = Activator.CreateInstance(converterType) as ValueConverter;
+                // Configuring One to Many Relationships between Order and Order Items
+                entity.HasMany(o => o.OrderItems)
+                    .WithOne(oi => oi.Order)
+                    .HasForeignKey(oi => oi.OrderId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
-                    // Apply the converter to the property if the instance was created successfully
-                    if (converter != null)
-                    {
-                        property.SetValueConverter(converter);
-                    }
-                }
-            }
-
-            // Configure all string properties to be non-Unicode (varchar)
-            // Loop through all entity types in the model
-            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            // Configuring the OrderItem entity
+            modelBuilder.Entity<OrderItem>(entity =>
             {
-                // Get all properties of type string
-                var stringProperties = entityType.GetProperties()
-                    .Where(p => p.ClrType == typeof(string));
+                // Configuring composite primary key
+                entity.HasKey(oi => new { oi.OrderId, oi.ProductId });
 
-                // Set each string property to be non-Unicode (varchar) instead of Unicode (nvarchar)
-                foreach (var property in stringProperties)
-                {
-                    property.SetIsUnicode(false); // Set property to varchar
-                }
-            }
-
-            // Automatically set CreatedAt and UpdatedAt column values
-            // Loop through all entity types in the model
-            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-            {
-                // Check if the entity implements the ITimestampedEntity interface
-                if (typeof(ITimestampedEntity).IsAssignableFrom(entityType.ClrType))
-                {
-                    // Configure the CreatedAt property to have a default value of the current UTC date/time
-                    modelBuilder.Entity(entityType.ClrType)
-                        .Property<DateTime>("CreatedAt")
-                        .HasDefaultValueSql("GETUTCDATE()")  // SQL function to get the current UTC date/time
-                        .ValueGeneratedOnAdd();              // Value is set when the entity is first added to the database
-
-                    // Configure the UpdatedAt property to also default to the current UTC date/time
-                    // This value will be updated on both creation and subsequent updates
-                    modelBuilder.Entity(entityType.ClrType)
-                        .Property<DateTime>("UpdatedAt")
-                        .HasDefaultValueSql("GETUTCDATE()")  // SQL function to get the current UTC date/time
-                        .ValueGeneratedOnAddOrUpdate();      // Value is set on both add and update operations
-                }
-            }
-
-            // Set delete behavior to Restrict
-            // Loop through all entity types in the model
-            foreach (var foreignKey in modelBuilder.Model.GetEntityTypes()
-                .SelectMany(e => e.GetForeignKeys())) // Select all foreign keys across all entity types
-            {
-                // Set the delete behavior for each foreign key relationship to "Restrict"
-                // This prevents cascading deletes, meaning that deleting a parent entity
-                // will not automatically delete related child entities.
-                // This means that the principal entity cannot be deleted if dependent entities exist.
-                foreignKey.DeleteBehavior = DeleteBehavior.Restrict;
-            }
+                // Configuring One to Many relationship Between Product and OrderItem 
+                entity.HasOne(oi => oi.Product)
+                    .WithMany(p => p.OrderItems)
+                    .HasForeignKey(oi => oi.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
         }
 
         // Define DbSets
+        public DbSet<Customer> Customers { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
