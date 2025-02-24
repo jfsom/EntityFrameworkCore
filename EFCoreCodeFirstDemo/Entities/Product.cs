@@ -1,15 +1,11 @@
 ﻿namespace EFCoreCodeFirstDemo.Entities
 {
-    public class Product
+    public class Product : ITimestampedEntity
     {
-        public int ProductId { get; set; }
-        public string Name { get; set; }
-        public decimal Price { get; set; }
-
-        // Each product belongs to exactly one Category
-        // Foreign Key
-        public int CategoryId { get; set; }
-        // Navigation Property
-        public Category Category { get; set; }
+        public int Id { get; set; }
+        public string Name { get; set; } // We will apply a default max length
+        public decimal Price { get; set; } // We will set default precision                               
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 }
