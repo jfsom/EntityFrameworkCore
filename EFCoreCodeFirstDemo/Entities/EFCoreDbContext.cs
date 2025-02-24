@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using EFCorePropertyConfigurations.Entities;
+using Microsoft.EntityFrameworkCore;
 namespace EFCoreCodeFirstDemo.Entities
 {
     public class EFCoreDbContext : DbContext
@@ -11,66 +12,90 @@ namespace EFCoreCodeFirstDemo.Entities
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Configuring the Customer entity
+            // Configuring Customer entity
             modelBuilder.Entity<Customer>(entity =>
             {
-                // Setting the table name and schema
-                entity.ToTable("tblCustomer", schema: "Admin");
+                // Configuring column name
+                entity.Property(c => c.FirstName)
+                      .HasColumnName("First_Name");
 
-                // Setting the primary key
-                entity.HasKey(c => c.CustomerId);
+                // Configuring maximum length
+                entity.Property(c => c.FirstName)
+                      .HasMaxLength(100);
 
-                // Setting alternate key (unique constraint) on Email
-                entity.HasAlternateKey(c => c.Email);
+                // Configuring required property
+                entity.Property(c => c.Email)
+                      .IsRequired();
 
-                // Configuring indexes
-                entity.HasIndex(c => c.Email).IsUnique();
+                // Configuring default value
+                entity.Property(c => c.CreatedDate)
+                      .HasDefaultValueSql("GETDATE()");
 
-                // Configuring the owned entity Address
-                entity.OwnsOne(c => c.Address);
+                //Configuring Identity
+                entity.Property(c => c.Id)
+                      .ValueGeneratedOnAdd();
 
-                // Configuring One to Many Relationships Between Customer and Order
-                entity.HasMany(c => c.Orders)
-                    .WithOne(o => o.Customer)
-                    .HasForeignKey(o => o.CustomerId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                //Configuring Nullable Property
+                entity.Property(p => p.PhoneNumber)
+                    .IsRequired(false);
             });
 
-            // Configuring the Product entity
+            // Configuring Product entity
             modelBuilder.Entity<Product>(entity =>
             {
-                // Setting the primary key
-                entity.HasKey(p => p.ProductId);
+                // Configuring column name
+                entity.Property(p => p.Name).HasColumnName("ProductName");
+
+                //Configuring Column data type
+                entity.Property(p => p.Price)
+                    .HasColumnType("decimal(18,2)");
+
+                //Ignoring the Description Property
+                entity.Ignore(p => p.Description);
+
+                // Configuring concurrency token
+                entity.Property(p => p.RowVersion)
+                    .IsRowVersion();
+
+                // Configuring Shadow Property
+                entity.Property<DateTime>("CreatedDate")
+                    .HasDefaultValueSql("GETDATE()");
             });
 
-            // Configuring the Order entity
+            // Configuring Order entity
             modelBuilder.Entity<Order>(entity =>
             {
-                // Setting the primary key
-                entity.HasKey(o => o.OrderId);
-
-                // Store the enum as string
+                // Configuring enum mapping to string, i.e., value conversion
                 entity.Property(o => o.Status)
                     .HasConversion<string>();
 
-                // Configuring One to Many Relationships between Order and Order Items
-                entity.HasMany(o => o.OrderItems)
-                    .WithOne(oi => oi.Order)
-                    .HasForeignKey(oi => oi.OrderId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                // Configuring default value for CreatedDate
+                entity.Property(o => o.CreatedDate)
+                    .HasDefaultValueSql("GETDATE()");
+
+                // Configuring default value for Status
+                entity.Property(o => o.Status)
+                    .HasDefaultValue(OrderStatus.Pending);
+
+                // Configuring concurrency token
+                entity.Property(o => o.RowVersion)
+                    .IsRowVersion();
             });
 
-            // Configuring the OrderItem entity
+            // Configuring OrderItem entity
             modelBuilder.Entity<OrderItem>(entity =>
             {
-                // Configuring composite primary key
-                entity.HasKey(oi => new { oi.OrderId, oi.ProductId });
+                // Configuring precision and scale
+                entity.Property(oi => oi.UnitPrice)
+                    .HasPrecision(18, 2);
 
-                // Configuring One to Many relationship Between Product and OrderItem 
-                entity.HasOne(oi => oi.Product)
-                    .WithMany(p => p.OrderItems)
-                    .HasForeignKey(oi => oi.ProductId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                // Configuring precision and scale
+                entity.Property(oi => oi.TotalPrice)
+                    .HasPrecision(18, 2);
+
+                // Configuring computed column
+                entity.Property(oi => oi.TotalPrice)
+                    .HasComputedColumnSql("[UnitPrice] * [Quantity]");
             });
         }
 

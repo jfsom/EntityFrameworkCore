@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EFCoreCodeFirstDemo.Migrations
 {
     [DbContext(typeof(EFCoreDbContext))]
-    [Migration("20250224155006_entity-configurations-using-entity-framework-core-fluent-api")]
-    partial class entityconfigurationsusingentityframeworkcorefluentapi
+    [Migration("20250224170009_property-configuration-using-entity-framework-core-fluent-api")]
+    partial class propertyconfigurationusingentityframeworkcorefluentapi
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,37 +25,45 @@ namespace EFCoreCodeFirstDemo.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.Customer", b =>
+            modelBuilder.Entity("EFCorePropertyConfigurations.Entities.Customer", b =>
                 {
-                    b.Property<int>("CustomerId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CustomerId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("First_Name");
+
+                    b.Property<DateTime?>("LastLoginDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("CustomerId");
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasAlternateKey("Email");
+                    b.HasKey("Id");
 
-                    b.HasIndex("Email")
-                        .IsUnique();
-
-                    b.ToTable("tblCustomer", "Admin");
+                    b.ToTable("Customers");
                 });
 
-            modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.Order", b =>
+            modelBuilder.Entity("EFCorePropertyConfigurations.Entities.Order", b =>
                 {
                     b.Property<int>("OrderId")
                         .ValueGeneratedOnAdd()
@@ -63,15 +71,28 @@ namespace EFCoreCodeFirstDemo.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderId"));
 
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
+
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("Pending");
 
                     b.HasKey("OrderId");
 
@@ -80,8 +101,14 @@ namespace EFCoreCodeFirstDemo.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.OrderItem", b =>
+            modelBuilder.Entity("EFCorePropertyConfigurations.Entities.OrderItem", b =>
                 {
+                    b.Property<int>("OrderItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderItemId"));
+
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
 
@@ -91,17 +118,26 @@ namespace EFCoreCodeFirstDemo.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("TotalPrice")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasComputedColumnSql("[UnitPrice] * [Quantity]");
+
                     b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.HasKey("OrderId", "ProductId");
+                    b.HasKey("OrderItemId");
+
+                    b.HasIndex("OrderId");
 
                     b.HasIndex("ProductId");
 
                     b.ToTable("OrderItems");
                 });
 
-            modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.Product", b =>
+            modelBuilder.Entity("EFCorePropertyConfigurations.Entities.Product", b =>
                 {
                     b.Property<int>("ProductId")
                         .ValueGeneratedOnAdd()
@@ -109,52 +145,33 @@ namespace EFCoreCodeFirstDemo.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductId"));
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateTime>("CreatedDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("ProductName");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.HasKey("ProductId");
 
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.Customer", b =>
+            modelBuilder.Entity("EFCorePropertyConfigurations.Entities.Order", b =>
                 {
-                    b.OwnsOne("EFCoreCodeFirstDemo.Entities.Address", "Address", b1 =>
-                        {
-                            b1.Property<int>("CustomerId")
-                                .HasColumnType("int");
-
-                            b1.Property<string>("City")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("Street")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.HasKey("CustomerId");
-
-                            b1.ToTable("tblCustomer", "Admin");
-
-                            b1.WithOwner()
-                                .HasForeignKey("CustomerId");
-                        });
-
-                    b.Navigation("Address")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.Order", b =>
-                {
-                    b.HasOne("EFCoreCodeFirstDemo.Entities.Customer", "Customer")
+                    b.HasOne("EFCorePropertyConfigurations.Entities.Customer", "Customer")
                         .WithMany("Orders")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -163,18 +180,18 @@ namespace EFCoreCodeFirstDemo.Migrations
                     b.Navigation("Customer");
                 });
 
-            modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.OrderItem", b =>
+            modelBuilder.Entity("EFCorePropertyConfigurations.Entities.OrderItem", b =>
                 {
-                    b.HasOne("EFCoreCodeFirstDemo.Entities.Order", "Order")
+                    b.HasOne("EFCorePropertyConfigurations.Entities.Order", "Order")
                         .WithMany("OrderItems")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EFCoreCodeFirstDemo.Entities.Product", "Product")
+                    b.HasOne("EFCorePropertyConfigurations.Entities.Product", "Product")
                         .WithMany("OrderItems")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Order");
@@ -182,17 +199,17 @@ namespace EFCoreCodeFirstDemo.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.Customer", b =>
+            modelBuilder.Entity("EFCorePropertyConfigurations.Entities.Customer", b =>
                 {
                     b.Navigation("Orders");
                 });
 
-            modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.Order", b =>
+            modelBuilder.Entity("EFCorePropertyConfigurations.Entities.Order", b =>
                 {
                     b.Navigation("OrderItems");
                 });
 
-            modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.Product", b =>
+            modelBuilder.Entity("EFCorePropertyConfigurations.Entities.Product", b =>
                 {
                     b.Navigation("OrderItems");
                 });

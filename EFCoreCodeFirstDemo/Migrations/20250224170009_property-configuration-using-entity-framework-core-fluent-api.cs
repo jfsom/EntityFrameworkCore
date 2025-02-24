@@ -6,13 +6,28 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EFCoreCodeFirstDemo.Migrations
 {
     /// <inheritdoc />
-    public partial class entityconfigurationsusingentityframeworkcorefluentapi : Migration
+    public partial class propertyconfigurationusingentityframeworkcorefluentapi : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.EnsureSchema(
-                name: "Admin");
+            migrationBuilder.CreateTable(
+                name: "Customers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    First_Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LastLoginDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Customers", x => x.Id);
+                });
 
             migrationBuilder.CreateTable(
                 name: "Products",
@@ -20,32 +35,14 @@ namespace EFCoreCodeFirstDemo.Migrations
                 {
                     ProductId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ProductName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Products", x => x.ProductId);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "tblCustomer",
-                schema: "Admin",
-                columns: table => new
-                {
-                    CustomerId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Address_Street = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Address_City = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_tblCustomer", x => x.CustomerId);
-                    table.UniqueConstraint("AK_tblCustomer_Email", x => x.Email);
                 });
 
             migrationBuilder.CreateTable(
@@ -55,18 +52,19 @@ namespace EFCoreCodeFirstDemo.Migrations
                     OrderId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "Pending"),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()"),
+                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
                     CustomerId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Orders", x => x.OrderId);
                     table.ForeignKey(
-                        name: "FK_Orders_tblCustomer_CustomerId",
+                        name: "FK_Orders_Customers_CustomerId",
                         column: x => x.CustomerId,
-                        principalSchema: "Admin",
-                        principalTable: "tblCustomer",
-                        principalColumn: "CustomerId",
+                        principalTable: "Customers",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -74,14 +72,17 @@ namespace EFCoreCodeFirstDemo.Migrations
                 name: "OrderItems",
                 columns: table => new
                 {
-                    OrderId = table.Column<int>(type: "int", nullable: false),
-                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    OrderItemId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UnitPrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
-                    UnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    TotalPrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false, computedColumnSql: "[UnitPrice] * [Quantity]"),
+                    OrderId = table.Column<int>(type: "int", nullable: false),
+                    ProductId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OrderItems", x => new { x.OrderId, x.ProductId });
+                    table.PrimaryKey("PK_OrderItems", x => x.OrderItemId);
                     table.ForeignKey(
                         name: "FK_OrderItems_Orders_OrderId",
                         column: x => x.OrderId,
@@ -93,8 +94,13 @@ namespace EFCoreCodeFirstDemo.Migrations
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "ProductId",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderItems_OrderId",
+                table: "OrderItems",
+                column: "OrderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderItems_ProductId",
@@ -105,13 +111,6 @@ namespace EFCoreCodeFirstDemo.Migrations
                 name: "IX_Orders_CustomerId",
                 table: "Orders",
                 column: "CustomerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_tblCustomer_Email",
-                schema: "Admin",
-                table: "tblCustomer",
-                column: "Email",
-                unique: true);
         }
 
         /// <inheritdoc />
@@ -127,8 +126,7 @@ namespace EFCoreCodeFirstDemo.Migrations
                 name: "Products");
 
             migrationBuilder.DropTable(
-                name: "tblCustomer",
-                schema: "Admin");
+                name: "Customers");
         }
     }
 }

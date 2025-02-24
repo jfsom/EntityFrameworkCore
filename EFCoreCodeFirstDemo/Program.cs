@@ -1,5 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using EFCorePropertyConfigurations.Entities;
 using EFCoreCodeFirstDemo.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace EFCoreCodeFirstDemo
 {
@@ -10,21 +11,21 @@ namespace EFCoreCodeFirstDemo
             // Initialize the database context
             using (var context = new EFCoreDbContext())
             {
-                // 1. Creating Some Products
+                // Step 1: Create and add some products
                 CreateProducts(context);
 
-                // 2. Creating a Few Customers
+                // Step 2: Create and add some customers
                 CreateCustomers(context);
 
-                // 3. Creating Orders with Related Order Items
+                // Step 3: Create and add some orders with related order items
                 CreateOrdersWithOrderItems(context);
 
-                // 4. Displaying All Customers All Orders 
+                // Step 4: Display all customers and their respective orders
                 DisplayAllOrders(context);
             }
         }
 
-        // Creates and saves a list of products to the database.
+        // Step 1: Create and save a list of products to the database
         private static void CreateProducts(EFCoreDbContext context)
         {
             // Check if products already exist to avoid duplication
@@ -34,10 +35,10 @@ namespace EFCoreCodeFirstDemo
             // List of products to add
             var products = new List<Product>
             {
-                new Product { Name = "Laptop", Price = 1200m, Description = "High-performance laptop" },
-                new Product { Name = "Smartphone", Price = 800m, Description = "Latest model smartphone" },
-                new Product { Name = "Headphones", Price = 150m, Description = "Noise-cancelling headphones" },
-                new Product { Name = "Tablet", Price = 500m, Description = "10-inch display tablet" }
+                new Product { Name = "Laptop", Price = 1200m },
+                new Product { Name = "Smartphone", Price = 800m },
+                new Product { Name = "Headphones", Price = 150m },
+                new Product { Name = "Tablet", Price = 500m }
             };
 
             // Add products to the context
@@ -48,31 +49,31 @@ namespace EFCoreCodeFirstDemo
             Console.WriteLine("Products have been added to the database.");
         }
 
-        // Creates and saves a list of customers to the database.
+        // Step 2: Create and save a list of customers to the database
         private static void CreateCustomers(EFCoreDbContext context)
         {
             // Check if customers already exist to avoid duplication
             if (context.Customers.Any())
                 return;
 
-            //Adding List of Customers
-            var customers = new List<Customer>()
+            // List of customers to add
+            var customers = new List<Customer>
             {
                 new Customer
                 {
                     FirstName = "Pranaya",
                     LastName = "Rout",
-                    Email = "Pranaya.Rout@DotNetTutorials.NET",
-                    Address = new Address { Street = "123 Main St", City = "BBSR" }
+                    Email = "Pranaya.Rout@dotnettutorials.net",
+                    PhoneNumber = "123-456-7890"
                 },
                 new Customer
                 {
                     FirstName = "Rakesh",
                     LastName = "Kumar",
-                    Email = "Rakesh.Kumar@DotNetTutorials.NET",
-                    Address = new Address { Street = "456 Oak St", City = "Mumbai" }
+                    Email = "Rakesh.Kumar@dotnettutorials.net",
+                    PhoneNumber = "098-765-4321"
                 }
-             };
+            };
 
             // Add customers to the context
             context.Customers.AddRange(customers);
@@ -82,75 +83,57 @@ namespace EFCoreCodeFirstDemo
             Console.WriteLine("Customers have been added to the database.");
         }
 
-        // Creates orders with related order items for the customers.
+        // Step 3: Create and save orders with related order items
         private static void CreateOrdersWithOrderItems(EFCoreDbContext context)
         {
             // Check if orders already exist to avoid duplication
             if (context.Orders.Any())
                 return;
 
-            // Fetch existing customers
-            //Fetch the existing Customes who wants to Place Order
-            var customer1 = context.Customers.First(c => c.Email == "Pranaya.Rout@DotNetTutorials.NET");
-            var customer2 = context.Customers.First(c => c.Email == "Rakesh.Kumar@DotNetTutorials.NET");
+            // Fetch the customers who are going to place orders
+            var customer1 = context.Customers.First(c => c.Email == "Pranaya.Rout@dotnettutorials.net");
+            var customer2 = context.Customers.First(c => c.Email == "Rakesh.Kumar@dotnettutorials.net");
 
             // Fetch existing products
             var laptop = context.Products.First(p => p.Name == "Laptop");
             var smartphone = context.Products.First(p => p.Name == "Smartphone");
-            var headphones = context.Products.First(p => p.Name == "Headphones");
-            var tablets = context.Products.First(p => p.Name == "Tablet");
 
             // Create orders for each customer
             var orders = new List<Order>
             {
                 new Order
                 {
-                    CustomerId = customer1.CustomerId,
+                    CustomerId = customer1.Id,
                     OrderDate = DateTime.Now,
-                    Status = OrderStatus.Pending,
+                    //Status = OrderStatus.Pending, By Default it should be Pending
                     OrderItems = new List<OrderItem>
                     {
                         new OrderItem
                         {
                             ProductId = laptop.ProductId,
-                            Quantity = 1,
-                            UnitPrice = laptop.Price
+                            UnitPrice = laptop.Price,
+                            Quantity = 1
                         },
                         new OrderItem
                         {
-                            ProductId = headphones.ProductId,
-                            Quantity = 2,
-                            UnitPrice = headphones.Price
-                        }
-                    }
-                },
-                new Order
-                {
-                    CustomerId = customer2.CustomerId,
-                    OrderDate = DateTime.Now.AddDays(-1),
-                    Status = OrderStatus.Processing,
-                    OrderItems = new List<OrderItem>
-                    {
-                        new OrderItem
-                        {
                             ProductId = smartphone.ProductId,
-                            Quantity = 1,
-                            UnitPrice = smartphone.Price
+                            UnitPrice = smartphone.Price,
+                            Quantity = 2
                         }
                     }
                 },
                 new Order
                 {
-                    CustomerId = customer1.CustomerId,
-                    OrderDate = DateTime.Now.AddDays(-2),
+                    CustomerId = customer2.Id,
+                    OrderDate = DateTime.Now,
                     Status = OrderStatus.Completed,
                     OrderItems = new List<OrderItem>
                     {
                         new OrderItem
                         {
-                            ProductId = tablets.ProductId,
-                            Quantity = 3,
-                            UnitPrice = tablets.Price
+                            ProductId = smartphone.ProductId,
+                            UnitPrice = smartphone.Price,
+                            Quantity = 2
                         }
                     }
                 }
@@ -164,37 +147,39 @@ namespace EFCoreCodeFirstDemo
             Console.WriteLine("Orders have been created for the customers.");
         }
 
-        // Displays all orders along with their order items for all customers.
+        // Step 4: Display all customers and their orders, including order items
         private static void DisplayAllOrders(EFCoreDbContext context)
         {
-            // Step 4: Display all orders of all customers
+            // Fetch all customers with their orders and order items using eager loading
             var customersWithOrders = context.Customers
-                .Include(c => c.Orders) //Eager Load Related Order of Customer
-                    .ThenInclude(o => o.OrderItems) //Eager Load Related OrderItems of Orders
+                .Include(c => c.Orders)          // Eager load related orders
+                    .ThenInclude(o => o.OrderItems)  // Eager load related order items
                         .ThenInclude(oi => oi.Product) //Eager Load Related Products of OrderItems
                 .ToList();
 
             Console.WriteLine("\n---------------------- All Orders for All Customers ----------------------\n");
 
+            // Loop through each customer
             foreach (var customer in customersWithOrders)
             {
-                Console.WriteLine($"Customer: {customer.FirstName} {customer.LastName} ({customer.Email}) Address: {customer.Address.Street}, {customer.Address.City}");
+                Console.WriteLine($"Customer: {customer.FirstName} {customer.LastName} ({customer.Email})");
 
+                // Loop through each order of the customer
                 foreach (var order in customer.Orders)
                 {
-                    Console.WriteLine($"Order ID: {order.OrderId}, Order Status: {order.Status}, Order Date: {order.OrderDate:yyyy-MM-dd} (UTC)");
+                    Console.WriteLine($"Order ID: {order.OrderId}, Order Status: {order.Status}, Order Date: {order.OrderDate:yyyy-MM-dd}");
                     Console.WriteLine("Order Items:");
 
+                    // Loop through each order item
                     foreach (var item in order.OrderItems)
                     {
-                        Console.WriteLine($"\tProduct Name: {item.Product.Name}, Quantity: {item.Quantity}, Description: {item.Product.Description}, Unit Price: ${item.UnitPrice:F2}");
-                        Console.WriteLine($"\tTotal Price for Item: ${item.Quantity * item.UnitPrice:F2}");
+                        Console.WriteLine($"\tProduct Name: Name: {item.Product.Name}, Unit Price: {item.UnitPrice}, Quantity: {item.Quantity}");
+                        Console.WriteLine($"\tTotal Price for Item: {item.TotalPrice}");
                     }
 
                     // Calculate total order cost
-                    var totalCost = order.OrderItems.Sum(oi => oi.Quantity * oi.UnitPrice);
-                    Console.WriteLine($"Total Order Cost: ${totalCost:F2}");
-                    Console.WriteLine(); //Line spacing
+                    var totalOrderCost = order.OrderItems.Sum(oi => oi.TotalPrice);
+                    Console.WriteLine($"Total Order Cost: {totalOrderCost}\n");
                 }
             }
         }
