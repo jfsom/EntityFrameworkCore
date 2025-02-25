@@ -3,40 +3,52 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EFCoreCodeFirstDemo
 {
-    internal class Program
+    public class Program
     {
         static void Main(string[] args)
         {
             try
             {
-                // Create a list of new students to insert
-                List<Student> newStudents = new List<Student>()
-                {
-                    new Student() { FirstName = "Pranaya", LastName = "Rout", Branch = "CSE" },
-                    new Student() { FirstName = "Hina", LastName = "Sharma", Branch = "CSE" },
-                    new Student() { FirstName = "Anurag", LastName = "Mohanty", Branch = "CSE" },
-                    new Student() { FirstName = "Prity", LastName = "Tiwary", Branch = "ETC" }
-                };
+                Console.WriteLine("Starting BulkUpdate Operation...");
 
-                using var context = new EFCoreDbContext();
+                // Specify the branch to update
+                string branchToUpdate = "CSE";
 
-                // Perform Bulk Insert using EF Extensions
-                // Inserts all Student entities in the newStudents list into the database in a single, optimized operation.
-                context.BulkInsert(newStudents);
+                // Perform Bulk Update
+                BulkUpdateStudents(branchToUpdate);
 
-                //No Need for SaveChanges():
-                //The BulkInsert method handles database interactions internally, eliminating the need to call SaveChanges().
-                Console.WriteLine("BulkInsert: Successfully inserted new students.");
+                Console.WriteLine("BulkUpdate: Successfully updated student records.");
 
-                // Display all students belonging to the CSE branch
-                DisplayStudentsByBranch("CSE");
+                // Display updated students to verify changes
+                DisplayStudentsByBranch(branchToUpdate);
 
                 Console.ReadKey();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"BulkInsert Error: {ex.Message}");
+                Console.WriteLine($"BulkUpdate Error: {ex.Message}");
             }
+        }
+
+        //Updates the first and last names of students in the specified branch.
+        public static void BulkUpdateStudents(string branch)
+        {
+            using var context = new EFCoreDbContext();
+
+            // Fetch students belonging to the specified branch
+            var studentsToUpdate = context.Students
+                                         .Where(std => std.Branch == branch)
+                                         .ToList();
+
+            // Modify the desired properties for each student
+            foreach (var student in studentsToUpdate)
+            {
+                student.FirstName += " Updated";
+                student.LastName += " Updated";
+            }
+
+            // Perform Bulk Update using EF Extensions
+            context.BulkUpdate(studentsToUpdate);
         }
 
         // Retrieves and displays students from a specified branch.
@@ -50,10 +62,10 @@ namespace EFCoreCodeFirstDemo
                                       .Where(std => std.Branch == branch)
                                       .ToList();
 
-            Console.WriteLine($"\nStudents in {branch} Branch:");
+            Console.WriteLine($"\nUpdated Students in {branch} Branch:");
             foreach (var student in studentsList)
             {
-                Console.WriteLine($"\tStudent ID: {student.StudentId}, Name: {student.FirstName} {student.LastName}, Branch: {student.Branch}");
+                Console.WriteLine($"\tID: {student.StudentId}, First Name: {student.FirstName}, Last Name: {student.LastName}, Branch: {student.Branch}");
             }
         }
     }
