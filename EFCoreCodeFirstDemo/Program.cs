@@ -9,12 +9,12 @@ namespace EFCoreCodeFirstDemo
         {
             try
             {
-                // Step 1: Perform a bulk update for students in the "CSE" branch
-                Console.WriteLine("Updating all students with Branch = 'CSE'...");
-                BulkUpdate("CSE");
+                // Step 1: Perform bulk delete for students in the "CSE" branch
+                Console.WriteLine("Deleting all students with Branch = 'CSE'...");
+                BulkDelete("CSE");
 
-                // Step 2: Display the updated students in the "CSE" branch
-                Console.WriteLine("\nFetching and displaying updated students with Branch = 'CSE':");
+                // Step 2: Attempt to fetch and display students in the "CSE" branch post-deletion
+                Console.WriteLine("\nFetching students with Branch = 'CSE' after deletion attempt:");
                 GetStudents("CSE");
             }
             catch (DbUpdateException ex)
@@ -27,61 +27,55 @@ namespace EFCoreCodeFirstDemo
             }
         }
 
-        // Method to perform bulk update of students based on their branch
-        public static void BulkUpdate(string branch)
+        // Method to perform bulk delete of students based on their branch
+        public static void BulkDelete(string branch)
         {
-            using (var context = new EFCoreDbContext())
+            using var context = new EFCoreDbContext();
+
+            // Fetch students with the specified branch
+            var studentsList = context.Students
+                .Where(std => EF.Functions.Like(std.Branch, branch))
+                .ToList();
+
+            // Check if any students were found before deleting
+            if (studentsList.Any())
             {
-                // Fetch students with the specified branch
-                var studentsList = context.Students
-                    .Where(std => EF.Functions.Like(std.Branch, branch))
-                    .ToList();
+                // Remove the fetched students from the context
+                context.Students.RemoveRange(studentsList);
 
-                // Check if any students were found before updating
-                if (studentsList.Any())
-                {
-                    // Update properties for each student
-                    foreach (var student in studentsList)
-                    {
-                        student.FirstName += "Changed";
-                        student.LastName += "Changed";
-                    }
+                // Save changes to the database (generates individual DELETE statements)
+                context.SaveChanges();
 
-                    // Save changes to the database (generates individual UPDATE statements)
-                    context.SaveChanges();
-
-                    // Confirm successful update
-                    Console.WriteLine($"{studentsList.Count} students have been updated successfully.");
-                }
-                else
-                {
-                    Console.WriteLine($"No students found in the '{branch}' branch to update.");
-                }
+                // Confirm successful deletion
+                Console.WriteLine($"{studentsList.Count} students with Branch = '{branch}' have been deleted.");
+            }
+            else
+            {
+                Console.WriteLine($"No students found in the '{branch}' branch to delete.");
             }
         }
 
         // Method to fetch and display students based on their branch
         public static void GetStudents(string branch)
         {
-            using (var context = new EFCoreDbContext())
-            {
-                // Fetch students with the specified branch (case-insensitive)
-                var studentsList = context.Students
-                    .Where(std => EF.Functions.Like(std.Branch, branch))
-                    .ToList();
+            using var context = new EFCoreDbContext();
 
-                // Display fetched students or notify if none are found
-                if (studentsList.Any())
+            // Fetch students with the specified branch (case-insensitive)
+            var studentsList = context.Students
+                .Where(std => EF.Functions.Like(std.Branch, branch))
+                .ToList();
+
+            // Display fetched students or notify if none are found
+            if (studentsList.Any())
+            {
+                foreach (var student in studentsList)
                 {
-                    foreach (var student in studentsList)
-                    {
-                        Console.WriteLine($"Student ID: {student.StudentId}, Name: {student.FirstName} {student.LastName}, Branch: {student.Branch}");
-                    }
+                    Console.WriteLine($"Student ID: {student.StudentId}, Name: {student.FirstName} {student.LastName}, Branch: {student.Branch}");
                 }
-                else
-                {
-                    Console.WriteLine($"No students found in the '{branch}' branch.");
-                }
+            }
+            else
+            {
+                Console.WriteLine($"No students found in the '{branch}' branch.");
             }
         }
     }
