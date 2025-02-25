@@ -1,20 +1,20 @@
-﻿using EFCoreCodeFirstDemo.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using EFCoreCodeFirstDemo.Entities;
 
 namespace EFCoreCodeFirstDemo
 {
-    public class Program
+    internal class Program
     {
         static async Task Main(string[] args)
         {
             try
             {
-                Console.WriteLine("Starting BulkMerge operation...");
+                Console.WriteLine("Starting BulkSaveChanges operation...");
 
-                // Perform Bulk Merge operation
-                await BulkMergeAsync();
+                // Perform Bulk SaveChanges operation
+                await BulkSaveChangesAsync();
 
-                Console.WriteLine("BulkMerge operation completed.");
+                Console.WriteLine("BulkSaveChanges operation completed.");
             }
             catch (Exception ex)
             {
@@ -22,26 +22,34 @@ namespace EFCoreCodeFirstDemo
             }
         }
 
-        private static async Task BulkMergeAsync()
+        private static async Task BulkSaveChangesAsync()
         {
             using var context = new EFCoreDbContext();
 
-            // Existing list of students to merge (sync) with the database
-            List<Student> studentsToMerge = new List<Student>
+            // Fetch existing students from the database
+            var existingStudents = await context.Students.Where(s => s.Branch == "CSE").ToListAsync();
+
+            // Updating existing students (append 'Updated' to their names)
+            foreach (var student in existingStudents)
             {
-                // Assume that StudentId 1 exists and will be updated
-                new Student { StudentId = 1, FirstName = "John", LastName = "Doe Updated", Branch = "CSE" },
-                
-                // This is a new student that will be inserted
-                new Student { FirstName = "Ramesh", LastName = "Sethy", Branch = "CSE" }
-            };
+                student.FirstName += " Updated";
+                student.LastName += " Updated";
+            }
 
-            // Perform BulkMerge operation:
-            // - Updates student with StudentId = 1
-            // - Inserts new student without an ID
-            await context.BulkMergeAsync(studentsToMerge);
+            // Adding a new student to the context
+            context.Students.Add(new Student { FirstName = "New", LastName = "Student", Branch = "ETC" });
 
-            // Display current students in the database after the merge
+            // Deleting a student from the context (this will be batched in the BulkSaveChanges)
+            var studentToDelete = await context.Students.Where(s => s.FirstName == "Sethy").FirstOrDefaultAsync();
+            if (studentToDelete != null)
+            {
+                context.Students.Remove(studentToDelete);
+            }
+
+            // Perform BulkSaveChanges to save all updates, inserts, and deletes in one go
+            await context.BulkSaveChangesAsync();
+
+            // Display current students in the database after the save
             await DisplayStudentsAsync();
         }
 
@@ -52,7 +60,7 @@ namespace EFCoreCodeFirstDemo
             Console.WriteLine("Current Students in the database:");
             foreach (var student in students)
             {
-                Console.WriteLine($"\tID: {student.StudentId}, Name: {student.FirstName} {student.LastName}, Branch: {student.Branch}");
+                Console.WriteLine($"ID: {student.StudentId}, Name: {student.FirstName} {student.LastName}, Branch: {student.Branch}");
             }
             Console.WriteLine();  // Blank line for better readability
         }
