@@ -5,21 +5,21 @@ namespace EFCoreCodeFirstDemo
 {
     internal class Program
     {
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
             try
             {
-                // Step 1: Perform a bulk insert of students asynchronously
-                Console.WriteLine("Inserting students into the database asynchronously...");
-                await BulkInsertAsync();
+                List<Student> newStudents = new List<Student>();
+                for (int i = 1; i <= 200; i++)
+                {
+                    newStudents.Add(new Student() { FirstName = $"Pranaya-{i}", LastName = $"Rout-{i}", Branch = "CSE" });
+                }
 
-                // Step 2: Perform a bulk update of students asynchronously
-                Console.WriteLine("\nUpdating students in the 'CSE' branch asynchronously...");
-                await BulkUpdateAsync("CSE");
+                // Step 2: Perform a bulk insert of the students
+                Console.WriteLine("Inserting new students into the database...");
+                BulkInsert(newStudents);
 
-                // Step 3: Perform a bulk delete of students asynchronously
-                Console.WriteLine("\nDeleting students in the 'CSE' branch asynchronously...");
-                await BulkDeleteAsync("CSE");
+                Console.WriteLine("Inserting new students into the database completed...");
             }
             catch (DbUpdateException ex)
             {
@@ -31,85 +31,19 @@ namespace EFCoreCodeFirstDemo
             }
         }
 
-        // Method to perform bulk insert asynchronously
-        public static async Task BulkInsertAsync()
+        // Method to perform bulk insert operation
+        public static void BulkInsert(IList<Student> newStudents)
         {
-            using var context = new EFCoreDbContext();
-
-            // Create a list of new students to insert
-            var newStudents = new List<Student>
+            using (var context = new EFCoreDbContext())
             {
-                new Student() { FirstName = "John", LastName = "Doe", Branch = "CSE" },
-                new Student() { FirstName = "Jane", LastName = "Smith", Branch = "CSE" },
-                new Student() { FirstName = "Mark", LastName = "Johnson", Branch = "CSE" },
-                new Student() { FirstName = "Sara", LastName = "Connor", Branch = "IT" }
-            };
+                // Step 1: Add the list of students to the context
+                context.Students.AddRange(newStudents);
 
-            // Asynchronously add the list of students to the context
-            await context.Students.AddRangeAsync(newStudents);
+                // Step 2: Save the changes to the database (MERGE statement generated)
+                context.SaveChanges();
 
-            // Asynchronously save changes to the database
-            await context.SaveChangesAsync();
-
-            // Confirm successful insertion
-            Console.WriteLine($"{newStudents.Count} students have been inserted successfully.");
-        }
-
-        // Method to perform bulk update asynchronously
-        public static async Task BulkUpdateAsync(string branch)
-        {
-            using var context = new EFCoreDbContext();
-
-            // Asynchronously fetch students from the specified branch
-            var studentsList = await context.Students
-                .Where(s => EF.Functions.Like(s.Branch, branch))
-                .ToListAsync();
-
-            if (studentsList.Any())
-            {
-                // Update properties for each student
-                foreach (var student in studentsList)
-                {
-                    student.FirstName += "Updated";
-                    student.LastName += "Updated";
-                }
-
-                // Asynchronously save updated student details to the database
-                await context.SaveChangesAsync();
-
-                // Confirm successful update
-                Console.WriteLine($"{studentsList.Count} students in the '{branch}' branch have been updated successfully.");
-            }
-            else
-            {
-                Console.WriteLine($"No students found in the '{branch}' branch to update.");
-            }
-        }
-
-        // Method to perform bulk delete asynchronously
-        public static async Task BulkDeleteAsync(string branch)
-        {
-            using var context = new EFCoreDbContext();
-
-            // Asynchronously fetch students from the specified branch
-            var studentsList = await context.Students
-                .Where(s => EF.Functions.Like(s.Branch, branch))
-                .ToListAsync();
-
-            if (studentsList.Any())
-            {
-                // Mark the fetched students for deletion
-                context.Students.RemoveRange(studentsList);
-
-                // Asynchronously save changes to the database
-                await context.SaveChangesAsync();
-
-                // Confirm successful deletion
-                Console.WriteLine($"{studentsList.Count} students in the '{branch}' branch have been deleted.");
-            }
-            else
-            {
-                Console.WriteLine($"No students found in the '{branch}' branch to delete.");
+                // Output confirmation of successful insertion
+                Console.WriteLine($"{newStudents.Count} students have been inserted successfully.");
             }
         }
     }
