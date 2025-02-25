@@ -9,41 +9,51 @@ namespace EFCoreCodeFirstDemo
         {
             try
             {
-                List<Student> newStudents = new List<Student>();
-                for (int i = 1; i <= 200; i++)
+                // Create a list of new students to insert
+                List<Student> newStudents = new List<Student>()
                 {
-                    newStudents.Add(new Student() { FirstName = $"Pranaya-{i}", LastName = $"Rout-{i}", Branch = "CSE" });
-                }
+                    new Student() { FirstName = "Pranaya", LastName = "Rout", Branch = "CSE" },
+                    new Student() { FirstName = "Hina", LastName = "Sharma", Branch = "CSE" },
+                    new Student() { FirstName = "Anurag", LastName = "Mohanty", Branch = "CSE" },
+                    new Student() { FirstName = "Prity", LastName = "Tiwary", Branch = "ETC" }
+                };
 
-                // Step 2: Perform a bulk insert of the students
-                Console.WriteLine("Inserting new students into the database...");
-                BulkInsert(newStudents);
+                using var context = new EFCoreDbContext();
 
-                Console.WriteLine("Inserting new students into the database completed...");
-            }
-            catch (DbUpdateException ex)
-            {
-                Console.WriteLine($"Database Error: {ex.InnerException?.Message ?? ex.Message}");
+                // Perform Bulk Insert using EF Extensions
+                // Inserts all Student entities in the newStudents list into the database in a single, optimized operation.
+                context.BulkInsert(newStudents);
+
+                //No Need for SaveChanges():
+                //The BulkInsert method handles database interactions internally, eliminating the need to call SaveChanges().
+                Console.WriteLine("BulkInsert: Successfully inserted new students.");
+
+                // Display all students belonging to the CSE branch
+                DisplayStudentsByBranch("CSE");
+
+                Console.ReadKey();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error occurred: {ex.Message}");
+                Console.WriteLine($"BulkInsert Error: {ex.Message}");
             }
         }
 
-        // Method to perform bulk insert operation
-        public static void BulkInsert(IList<Student> newStudents)
+        // Retrieves and displays students from a specified branch.
+        public static void DisplayStudentsByBranch(string branch)
         {
-            using (var context = new EFCoreDbContext())
+            using var context = new EFCoreDbContext();
+
+            // Fetch all students where Branch matches the specified value
+            var studentsList = context.Students
+                                      .AsNoTracking() // Improves performance for read-only operations
+                                      .Where(std => std.Branch == branch)
+                                      .ToList();
+
+            Console.WriteLine($"\nStudents in {branch} Branch:");
+            foreach (var student in studentsList)
             {
-                // Step 1: Add the list of students to the context
-                context.Students.AddRange(newStudents);
-
-                // Step 2: Save the changes to the database (MERGE statement generated)
-                context.SaveChanges();
-
-                // Output confirmation of successful insertion
-                Console.WriteLine($"{newStudents.Count} students have been inserted successfully.");
+                Console.WriteLine($"\tStudent ID: {student.StudentId}, Name: {student.FirstName} {student.LastName}, Branch: {student.Branch}");
             }
         }
     }
