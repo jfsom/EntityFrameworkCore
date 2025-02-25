@@ -1,5 +1,7 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
 
 namespace EFCoreCodeFirstDemo
 {
@@ -9,46 +11,40 @@ namespace EFCoreCodeFirstDemo
         {
             try
             {
-                Console.WriteLine("Starting BulkUpdate Operation...");
+                Console.WriteLine("Starting BulkDelete Operation...");
 
-                // Specify the branch to update
-                string branchToUpdate = "CSE";
+                // Specify the branch to delete students from
+                string branchToDelete = "ETC";
 
-                // Perform Bulk Update
-                BulkUpdateStudents(branchToUpdate);
+                // Perform Bulk Delete
+                BulkDeleteStudents(branchToDelete);
 
-                Console.WriteLine("BulkUpdate: Successfully updated student records.");
+                Console.WriteLine("BulkDelete: Successfully deleted student records.");
 
-                // Display updated students to verify changes
-                DisplayStudentsByBranch(branchToUpdate);
+                // Display remaining students to verify deletion
+                DisplayStudentsByBranch("CSE");
+                DisplayStudentsByBranch("ETC");
 
                 Console.ReadKey();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"BulkUpdate Error: {ex.Message}");
+                Console.WriteLine($"BulkDelete Error: {ex.Message}");
             }
         }
 
-        //Updates the first and last names of students in the specified branch.
-        public static void BulkUpdateStudents(string branch)
+        // Deletes all students belonging to the specified branch.
+        public static void BulkDeleteStudents(string branch)
         {
             using var context = new EFCoreDbContext();
 
             // Fetch students belonging to the specified branch
-            var studentsToUpdate = context.Students
+            var studentsToDelete = context.Students
                                          .Where(std => std.Branch == branch)
                                          .ToList();
 
-            // Modify the desired properties for each student
-            foreach (var student in studentsToUpdate)
-            {
-                student.FirstName += " Updated";
-                student.LastName += " Updated";
-            }
-
-            // Perform Bulk Update using EF Extensions
-            context.BulkUpdate(studentsToUpdate);
+            // Perform Bulk Delete using EF Extensions
+            context.BulkDelete(studentsToDelete);
         }
 
         // Retrieves and displays students from a specified branch.
@@ -62,10 +58,17 @@ namespace EFCoreCodeFirstDemo
                                       .Where(std => std.Branch == branch)
                                       .ToList();
 
-            Console.WriteLine($"\nUpdated Students in {branch} Branch:");
-            foreach (var student in studentsList)
+            if (studentsList.Any())
             {
-                Console.WriteLine($"\tID: {student.StudentId}, First Name: {student.FirstName}, Last Name: {student.LastName}, Branch: {student.Branch}");
+                Console.WriteLine($"\nStudents in {branch} Branch:");
+                foreach (var student in studentsList)
+                {
+                    Console.WriteLine($"\tID: {student.StudentId}, Name: {student.FirstName} {student.LastName}, Branch: {student.Branch}");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"\nNo students found in {branch} Branch.");
             }
         }
     }
