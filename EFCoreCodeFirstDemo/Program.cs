@@ -9,21 +9,12 @@ namespace EFCoreCodeFirstDemo
         {
             try
             {
-                // Step 1: Create a list of new students to insert
-                List<Student> newStudents = new List<Student>()
-                {
-                    new Student() { FirstName = "Pranaya", LastName = "Rout", Branch = "CSE" },
-                    new Student() { FirstName = "Hina", LastName = "Sharma", Branch = "CSE" },
-                    new Student() { FirstName = "Anurag", LastName = "Mohanty", Branch = "CSE" },
-                    new Student() { FirstName = "Prity", LastName = "Tiwary", Branch = "ETC" }
-                };
+                // Step 1: Perform a bulk update for students in the "CSE" branch
+                Console.WriteLine("Updating all students with Branch = 'CSE'...");
+                BulkUpdate("CSE");
 
-                // Step 2: Perform a bulk insert of the students
-                Console.WriteLine("Inserting new students into the database...");
-                BulkInsert(newStudents);
-
-                // Step 3: Display students with the branch "CSE"
-                Console.WriteLine("\nFetching and displaying students with Branch = 'CSE':");
+                // Step 2: Display the updated students in the "CSE" branch
+                Console.WriteLine("\nFetching and displaying updated students with Branch = 'CSE':");
                 GetStudents("CSE");
             }
             catch (DbUpdateException ex)
@@ -36,19 +27,36 @@ namespace EFCoreCodeFirstDemo
             }
         }
 
-        // Method to perform bulk insert operation
-        public static void BulkInsert(IList<Student> newStudents)
+        // Method to perform bulk update of students based on their branch
+        public static void BulkUpdate(string branch)
         {
             using (var context = new EFCoreDbContext())
             {
-                // Add the list of students to the context
-                context.Students.AddRange(newStudents);
+                // Fetch students with the specified branch
+                var studentsList = context.Students
+                    .Where(std => EF.Functions.Like(std.Branch, branch))
+                    .ToList();
 
-                // Save changes to the database (generates MERGE statement)
-                context.SaveChanges();
+                // Check if any students were found before updating
+                if (studentsList.Any())
+                {
+                    // Update properties for each student
+                    foreach (var student in studentsList)
+                    {
+                        student.FirstName += "Changed";
+                        student.LastName += "Changed";
+                    }
 
-                // Confirm successful insertion
-                Console.WriteLine($"{newStudents.Count} students have been inserted successfully.");
+                    // Save changes to the database (generates individual UPDATE statements)
+                    context.SaveChanges();
+
+                    // Confirm successful update
+                    Console.WriteLine($"{studentsList.Count} students have been updated successfully.");
+                }
+                else
+                {
+                    Console.WriteLine($"No students found in the '{branch}' branch to update.");
+                }
             }
         }
 
