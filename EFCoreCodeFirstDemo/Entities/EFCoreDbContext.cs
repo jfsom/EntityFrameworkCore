@@ -7,17 +7,11 @@ namespace EFCoreCodeFirstDemo.Entities
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            // Log the SQL queries to the console
-            optionsBuilder.LogTo(Console.WriteLine, LogLevel.Information);
-
-            string _connectionString = @"Server=DESKTOP-RUC57UF;Database=StudentDB;Trusted_Connection=True;TrustServerCertificate=True;";
-
-            optionsBuilder.UseSqlServer(_connectionString, sqlOptions =>
-            {
-                sqlOptions.MaxBatchSize(100); // Set the batch size to 100
-            });
+            // Configure the SQL Server connection string
+            optionsBuilder.UseSqlServer(@"Server=DESKTOP-RUC57UF;Database=StudentDB;Trusted_Connection=True;TrustServerCertificate=True;");
         }
 
-        public DbSet<Student> Students { get; set; }
+        // DbSet representing the Students table
+        public DbSet<Product> Products { get; set; }
     }
 }
