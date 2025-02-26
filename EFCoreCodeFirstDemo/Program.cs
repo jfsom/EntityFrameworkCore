@@ -1,5 +1,5 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
-
+using Microsoft.EntityFrameworkCore;
 namespace EFCoreCodeFirstDemo
 {
     public class Program
@@ -14,14 +14,13 @@ namespace EFCoreCodeFirstDemo
                 //Standard, and StudentAddress are the Child Entities
                 var student = new Student()
                 {
-                    //Root Entity with key
-                    //StudentId = 1, //It is Identity, so you cannot set Explicit Value
+                    //Root Entity without key
                     FirstName = "Pranaya",
                     LastName = "Rout",
                     StandardId = 1,
                     Standard = new Standard()   //Child Entity with key value
                     {
-                        // StandardId = 1, //It is Identity, so you cannot set Explicit Value
+                        StandardId = 1,
                         StandardName = "STD1",
                         Description = "STD1 Description"
                     },
@@ -35,8 +34,19 @@ namespace EFCoreCodeFirstDemo
                 //Creating an Instance of the Context class
                 using var context = new EFCoreDbContext();
 
-                //Attaching the Disconnected Student Entity Graph to the Context Object 
-                context.Students.Add(student);
+                context.ChangeTracker.TrackGraph(student, e =>
+                {
+                    if (e.Entry.IsKeySet)
+                    {
+                        //If Key is Available set the State as Unchanged or Modified as Per Your Requirement
+                        e.Entry.State = EntityState.Unchanged;
+                    }
+                    else
+                    {
+                        // If Key is not Available set the State as Added
+                        e.Entry.State = EntityState.Added;
+                    }
+                });
 
                 //Checking the Entity State of Each Entity of student Entity Graph
                 foreach (var entity in context.ChangeTracker.Entries())
@@ -46,7 +56,7 @@ namespace EFCoreCodeFirstDemo
 
                 // Save changes to persist the changes to the database
                 context.SaveChanges();
-                Console.WriteLine("Entity Graph Added");
+                Console.WriteLine("Entity Graph Saved..");
                 Console.Read();
             }
 
