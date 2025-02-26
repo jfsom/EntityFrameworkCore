@@ -1,5 +1,6 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
 using Microsoft.EntityFrameworkCore;
+
 namespace EFCoreCodeFirstDemo
 {
     public class Program
@@ -18,7 +19,6 @@ namespace EFCoreCodeFirstDemo
                     FirstName = "Pranaya",
                     LastName = "Rout",
                     StandardId = 1,
-                    //Make Sure the StandardId with Value 1 Exists in the Database, else you will get Exception
                     Standard = new Standard()   //Child Entity with key value
                     {
                         StandardId = 1,
@@ -36,7 +36,7 @@ namespace EFCoreCodeFirstDemo
                 using var context = new EFCoreDbContext();
 
                 //Attaching the Disconnected Student Entity Graph to the Context Object 
-                context.Attach(student).State = EntityState.Added;
+                context.Entry(student).State = EntityState.Added;
 
                 //Checking the Entity State of Each Entity of student Entity Graph
                 foreach (var entity in context.ChangeTracker.Entries())
@@ -46,7 +46,6 @@ namespace EFCoreCodeFirstDemo
 
                 // Save changes to persist the changes to the database
                 context.SaveChanges();
-                Console.WriteLine("Entity Graph Saved Successfully");
 
                 Console.Read();
             }
