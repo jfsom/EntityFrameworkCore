@@ -9,25 +9,26 @@ namespace EFCoreCodeFirstDemo
         {
             try
             {
-                // Create a new disconnected Student entity
-                Student newStudent = new Student()
+                // Create a disconnected Student entity with an existing StudentId
+                Student existingStudent = new Student()
                 {
+                    StudentId = 1, // Ensure this ID exists in the database
                     FirstName = "Pranaya",
-                    LastName = "Rout"
+                    LastName = "Rout Updated"
                 };
 
                 using var context = new EFCoreDbContext();
 
                 // Determine the state based on StudentId
-                if (newStudent.StudentId > 0)
+                if (existingStudent.StudentId > 0)
                 {
                     // Existing entity: set state to Modified
-                    context.Entry(newStudent).State = EntityState.Modified;
+                    context.Entry(existingStudent).State = EntityState.Modified;
                 }
-                else if (newStudent.StudentId == 0)
+                else if (existingStudent.StudentId == 0)
                 {
                     // New entity: set state to Added
-                    context.Entry(newStudent).State = EntityState.Added;
+                    context.Entry(existingStudent).State = EntityState.Added;
                 }
                 else
                 {
@@ -35,16 +36,13 @@ namespace EFCoreCodeFirstDemo
                 }
 
                 // Display the entity state before saving
-                Console.WriteLine($"Before SaveChanges - Entity State: {context.Entry(newStudent).State}\n");
+                Console.WriteLine($"Before SaveChanges - Entity State: {context.Entry(existingStudent).State}\n");
 
                 // Persist changes to the database
                 context.SaveChanges();
 
                 // Display the entity state after saving
-                Console.WriteLine($"\nAfter SaveChanges - Entity State: {context.Entry(newStudent).State}");
-
-                // Display the Student Id
-                Console.WriteLine($"Student ID: {newStudent.StudentId}");
+                Console.WriteLine($"\nAfter SaveChanges - Entity State: {context.Entry(existingStudent).State}");
 
                 Console.ReadLine();
             }
