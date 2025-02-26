@@ -15,7 +15,6 @@ namespace EFCoreCodeFirstDemo.Entities
         {
         }
         public DbSet<Student> Students { get; set; }
-        public DbSet<Standard> Standards { get; set; }
-        public DbSet<StudentAddress> StudentAddresses { get; set; }
+
     }
 }
