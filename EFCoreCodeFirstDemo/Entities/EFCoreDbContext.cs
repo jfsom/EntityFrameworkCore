@@ -11,11 +11,11 @@ namespace EFCoreCodeFirstDemo.Entities
             optionsBuilder.UseSqlServer(@"Server=DESKTOP-RUC57UF;Database=StudentDB;Trusted_Connection=True;TrustServerCertificate=True;");
         }
 
-        // DbSets
-        public DbSet<Customer> Customers { get; set; }
-        public DbSet<Order> Orders { get; set; }
-        public DbSet<Payment> Payments { get; set; }
-        public DbSet<Job> Jobs { get; set; }
-        public DbSet<JobDetail> JobDetails { get; set; }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+        }
+        public DbSet<Student> Students { get; set; }
+        public DbSet<Standard> Standards { get; set; }
+        public DbSet<StudentAddress> StudentAddresses { get; set; }
     }
 }
