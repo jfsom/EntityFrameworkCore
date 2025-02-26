@@ -15,8 +15,8 @@ namespace EFCoreCodeFirstDemo
                 var student = new Student()
                 {
                     //Root Entity without key
-                    FirstName = "Pranaya",
-                    LastName = "Rout",
+                    FirstName = "Hina",
+                    LastName = "Sharma",
                     StandardId = 1,
                     Standard = new Standard()   //Child Entity with key value
                     {
@@ -30,21 +30,38 @@ namespace EFCoreCodeFirstDemo
                         Address2 = "Address Line2"
                     }
                 };
-
-                //Creating an Instance of the Context class
                 using var context = new EFCoreDbContext();
 
-                context.ChangeTracker.TrackGraph(student, e =>
+                // Use TrackGraph to track the entire graph
+                context.ChangeTracker.TrackGraph(student, nodeEntry =>
                 {
-                    if (e.Entry.IsKeySet)
+                    // Customize tracking behavior for each entity
+
+                    //Setting the Root Entity, i.e., Student
+                    if (nodeEntry.Entry.Entity is Student std)
                     {
-                        //If Key is Available set the State as Unchanged or Modified as Per Your Requirement
-                        e.Entry.State = EntityState.Unchanged;
+                        if (std.StudentId > 0)
+                        {
+                            nodeEntry.Entry.State = EntityState.Modified;
+                        }
+                        else
+                        {
+                            nodeEntry.Entry.State = EntityState.Added;
+                        }
                     }
+                    //Setting the Child Entity i.e. Standard and StudentAddress
                     else
                     {
-                        // If Key is not Available set the State as Added
-                        e.Entry.State = EntityState.Added;
+                        if (nodeEntry.Entry.IsKeySet)
+                        {
+                            //If Key is Available set the State as Unchanged as Per Your Requirement
+                            nodeEntry.Entry.State = EntityState.Unchanged;
+                        }
+                        else
+                        {
+                            // If Key is not Available set the State as Added as Per Your Requirement
+                            nodeEntry.Entry.State = EntityState.Added;
+                        }
                     }
                 });
 
