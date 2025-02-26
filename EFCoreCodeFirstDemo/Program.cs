@@ -1,26 +1,36 @@
 ﻿using System.Diagnostics;
 using EFCoreCodeFirstDemo.Entities;
 
-namespace EFCoreBulkUpdateBenchmark
+namespace EFCoreBulkDeleteBenchmark
 {
     class Program
     {
         static void Main(string[] args)
         {
-            // Standard EF Core Update
-            var efCoreUpdateTime = UpdateWithStandardEFCore();
+            // Generate initial products and insert them into the database
+            var initialProducts1 = GenerateProducts(2000);
+            var initialProducts2 = GenerateProducts(2000);
+            var initialProducts3 = GenerateProducts(2000);
 
-            // Z.EntityFramework.Extensions.EFCore Update
-            var zEntityExtensionsUpdateTime = UpdateWithZEntityExtensions();
+            // Ensure the data is pre-inserted
+            InsertWithStandardEFCore(initialProducts1);
+            InsertWithStandardEFCore(initialProducts2);
+            InsertWithStandardEFCore(initialProducts3);
 
-            // EFCore.BulkExtensions Update
-            var bulkExtensionsUpdateTime = UpdateWithEFCoreBulkExtensions();
+            // Standard EF Core Delete
+            var efCoreDeleteTime = DeleteWithStandardEFCore(initialProducts1);
+
+            // Z.EntityFramework.Extensions.EFCore Delete
+            var zEntityExtensionsDeleteTime = DeleteWithZEntityExtensions(initialProducts2);
+
+            // EFCore.BulkExtensions Delete
+            var bulkExtensionsDeleteTime = DeleteWithEFCoreBulkExtensions(initialProducts3);
 
             // Display the results
-            Console.WriteLine("\nBulk Update Performance Benchmark:");
-            Console.WriteLine($"Standard EF Core Update: {efCoreUpdateTime} ms");
-            Console.WriteLine($"Z.EntityFramework.Extensions.EFCore Update: {zEntityExtensionsUpdateTime} ms");
-            Console.WriteLine($"EFCore.BulkExtensions Update: {bulkExtensionsUpdateTime} ms");
+            Console.WriteLine("\nBulk Delete Performance Benchmark:");
+            Console.WriteLine($"Standard EF Core Delete: {efCoreDeleteTime} ms");
+            Console.WriteLine($"Z.EntityFramework.Extensions.EFCore Delete: {zEntityExtensionsDeleteTime} ms");
+            Console.WriteLine($"EFCore.BulkExtensions Delete: {bulkExtensionsDeleteTime} ms");
         }
 
         // Generates a list of Product instances.
@@ -44,51 +54,28 @@ namespace EFCoreBulkUpdateBenchmark
         }
 
         // Inserts products using standard EF Core AddRange and SaveChanges.
-        static void InsertWithStandardEFCore(List<Product> products)
+        static long InsertWithStandardEFCore(List<Product> products)
         {
             using (var context = new EFCoreDbContext())
             {
-                //Then add new data
+                var stopwatch = Stopwatch.StartNew();
+
                 context.Products.AddRange(products);
                 context.SaveChanges();
+
+                stopwatch.Stop();
+                return stopwatch.ElapsedMilliseconds;
             }
         }
 
-        // Modify the products for updating
-        static List<Product> ModifyProductsForUpdate(List<Product> products)
-        {
-            foreach (var product in products)
-            {
-                product.Price += 10; // Increase price by 10
-                product.Quantity += 1;
-                product.Description = "Changed";
-                product.ModifiedBy = "System";
-                product.IsAvailable = !product.IsAvailable; // Flip availability
-            }
-            return products;
-        }
-
-        // Updates products using standard EF Core Update and SaveChanges.
-        static long UpdateWithStandardEFCore()
+        // Deletes products using standard EF Core RemoveRange and SaveChanges.
+        static long DeleteWithStandardEFCore(List<Product> products)
         {
             using (var context = new EFCoreDbContext())
             {
-                // Clear existing data
-                context.Products.RemoveRange(context.Products);
-                context.SaveChanges();
-
-                // Generate initial products and insert them into the database
-                var initialProducts = GenerateProducts(2000);
-
-                // Ensure the data is pre-inserted
-                InsertWithStandardEFCore(initialProducts);
-
-                // Modify the products to update them
-                var updatedProducts = ModifyProductsForUpdate(initialProducts);
-
                 var stopwatch = Stopwatch.StartNew();
 
-                context.Products.UpdateRange(updatedProducts);
+                context.Products.RemoveRange(products); // Delete using standard EF Core
                 context.SaveChanges();
 
                 stopwatch.Stop();
@@ -96,56 +83,31 @@ namespace EFCoreBulkUpdateBenchmark
             }
         }
 
-        // Updates products using EFCore.BulkExtensions BulkUpdate.
-        static long UpdateWithEFCoreBulkExtensions()
+        // Deletes products using EFCore.BulkExtensions BulkDelete.
+        static long DeleteWithEFCoreBulkExtensions(List<Product> products)
         {
             using (var context = new EFCoreDbContext())
             {
-                // Clear existing data
-                context.Products.RemoveRange(context.Products);
-                context.SaveChanges();
-
-                // Generate initial products and insert them into the database
-                var initialProducts = GenerateProducts(2000);
-
-                // Ensure the data is pre-inserted
-                InsertWithStandardEFCore(initialProducts);
-
-                // Modify the products to update them
-                var updatedProducts = ModifyProductsForUpdate(initialProducts);
-
                 var stopwatch = Stopwatch.StartNew();
 
-                // Using EFCore.BulkExtensions for bulk update
-                //EFCore.BulkExtensions.DbContextBulkExtensions.BulkUpdate(context, updatedProducts);
+                // Bulk delete using EFCore.BulkExtensions
+                //EFCore.BulkExtensions.DbContextBulkExtensions.BulkDelete(context, products);
 
                 stopwatch.Stop();
                 return stopwatch.ElapsedMilliseconds;
             }
         }
 
-        // Updates products using Z.EntityFramework.Extensions.EFCore BulkUpdate.
-        static long UpdateWithZEntityExtensions()
+        // Deletes products using Z.EntityFramework.Extensions.EFCore BulkDelete.
+        static long DeleteWithZEntityExtensions(List<Product> products)
         {
             using (var context = new EFCoreDbContext())
             {
-                // Clear existing data
-                context.Products.RemoveRange(context.Products);
-                context.SaveChanges();
-
-                // Generate initial products and insert them into the database
-                var initialProducts = GenerateProducts(2000);
-
-                // Ensure the data is pre-inserted
-                InsertWithStandardEFCore(initialProducts);
-
-                // Modify the products to update them
-                var updatedProducts = ModifyProductsForUpdate(initialProducts);
-
                 var stopwatch = Stopwatch.StartNew();
 
-                // Using Z.EntityFramework.Extensions for bulk update
-                DbContextExtensions.BulkUpdate(context, updatedProducts);
+                // Bulk delete using Z.EntityFramework.Extensions
+                DbContextExtensions.BulkDelete(context, products);
+
                 stopwatch.Stop();
                 return stopwatch.ElapsedMilliseconds;
             }
