@@ -7,70 +7,46 @@ namespace EFCoreCodeFirstDemo
         {
             using (var context = new EFCoreDbContext())
             {
-                // Create and seed Article content
-                var article = new Article
+                // The Contents DbSet will returns records from the base Contents table.
+                // Since TPT creates separate tables for each derived class,
+                // this query will hit multiple tables(Joining with Articles, Videos, Images)
+                // But we can only access the properties which are available in base Content type
+                var contents = context.Contents.ToList();
+
+                //We loop through the contents and display the common properties
+                //such as ContentId, Title, ContentType, Author, and PublishedDate.
+                Console.WriteLine("----- List of All Content -----");
+                foreach (var content in contents)
                 {
-                    Title = "Understanding EF Core TPT Inheritance",
-                    Author = "Pranaya Rout",
-                    PublishedDate = DateTime.Now,
-                    ContentType = ContentType.Article,
-                    Status = ContentStatus.Published,
-                    Content = "This is a comprehensive guide on implementing TPT Inheritance...",
-                    Summary = "EF Core TPT Inheritance",
-                    ReadingTime = 10,
-                    FeaturedImage = "https://example.com/image.jpg",
-                    LastEditedDate = DateTime.Now,
-                    MetaTitle = "EF Core TPT",
-                    MetaKeywords = "EF Core, Inheritance, TPT",
-                    MetaDescription = "Learn about TPT inheritance in EF Core with examples."
-                };
+                    Console.WriteLine($"Content ID: {content.ContentId}, Title: {content.Title}, Type: {content.ContentType}, Author: {content.Author}, Published: {content.PublishedDate.ToShortDateString()}");
+                }
 
-                // Create and seed Video content
-                var video = new Video
+                //Separate queries for Articles, Videos, and Images are run, and
+                //we display specific properties relevant to each derived type
+
+                // Query and display details of all Articles
+                var articles = context.Articles.ToList();
+                Console.WriteLine("\n----- List of Articles -----");
+                foreach (var article in articles)
                 {
-                    Title = "Learn EF Core with Videos",
-                    Author = "Rakesh Kumar",
-                    PublishedDate = DateTime.Now,
-                    ContentType = ContentType.Video,
-                    Status = ContentStatus.Published,
-                    VideoUrl = "http://example.com/learn-efcore.mp4",
-                    ThumbnailUrl = "https://example.com/thumbnail.jpg",
-                    Duration = 3600,
-                    Resolution = "1080p",
-                    HasSubtitles = true,
-                    Subtitles = "http://example.com/subtitles.srt",
-                    MetaKeywords = "EF Core, Video, Learning",
-                    MetaDescription = "Learn EF Core through comprehensive video tutorials."
-                };
+                    Console.WriteLine($"Article ID: {article.ContentId}, Title: {article.Title}, Summary: {article.Summary}, Reading Time: {article.ReadingTime} minutes");
+                }
 
-                // Create and seed Image content
-                var image = new Image
+                // Query and display details of all Videos
+                var videos = context.Videos.ToList();
+                Console.WriteLine("\n----- List of Videos -----");
+                foreach (var video in videos)
                 {
-                    Title = "EF Core Infographic",
-                    Author = "Hina Sharma",
-                    PublishedDate = DateTime.Now,
-                    ContentType = ContentType.Image,
-                    Status = ContentStatus.Published,
-                    Caption = "EF Core Architecture Diagram",
-                    ImageUrl = "http://example.com/efcore-infographic.jpg",
-                    AltText = "EF Core Infographic",
-                    Dimensions = "1920x1080",
-                    Photographer = "Hina Sharma"
-                };
+                    Console.WriteLine($"Video ID: {video.ContentId}, Title: {video.Title}, URL: {video.VideoUrl}, Duration: {video.Duration / 60} minutes");
+                }
 
-                // Add the new content to the context
-                context.Articles.Add(article);
-                context.Videos.Add(video);
-                context.Images.Add(image);
-
-                // Save the changes to the database
-                int recordsAdded = context.SaveChanges();
-
-                // Output the result
-                Console.WriteLine($"{recordsAdded} records were saved to the database.");
-
-                // Confirm insertion
-                Console.WriteLine("Content items have been successfully added.");
+                // Query and display details of all Images
+                var images = context.Images.ToList();
+                Console.WriteLine("\n----- List of Images -----");
+                foreach (var image in images)
+                {
+                    Console.WriteLine($"Image ID: {image.ContentId}, Title: {image.Title}, URL: {image.ImageUrl}, Dimensions: {image.Dimensions}, Photographer: {image.Photographer}");
+                }
             }
         }
     }
