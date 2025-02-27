@@ -1,50 +1,109 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
+
 namespace EFCoreCodeFirstDemo
 {
-    public class Program
+    class Program
     {
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
-            try
+            // Perform INSERT and READ operations
+            CreatePayments();
+            ReadPayments();
+        }
+
+        // Creates sample payment records and saves them to the database.
+        static void CreatePayments()
+        {
+            using (var context = new EFCoreDbContext())
             {
-                //Use Inheritance in our Code
-                //Now, you can create and work with instances of the derived classes
-                //and save them to the database
-                using (var context = new EFCoreDbContext())
+                // Create a new CardPayment (Credit Card)
+                var cardPaymentCredit = new CardPayment
                 {
-                    var derivedEntityA = new DerivedEntity1 { Property1 = "SomeValue1", CommonProperty = "SomeCommonValue" };
-                    context.BaseEntites.Add(derivedEntityA);
+                    Amount = 1500.00m,
+                    PaymentDate = DateTime.Now,
+                    Currency = "INR",
+                    CardNumber = "4111111111111111",
+                    CardHolderName = "Ravi Kumar",
+                    ExpiryDate = new DateTime(2024, 12, 31),
+                    CVV = "123",
+                    CardType = CardType.Credit
+                };
 
-                    var derivedEntityB = new DerivedEntity2 { Property2 = "SomeValue2", CommonProperty = "SomeCommonValue" };
-                    context.BaseEntites.Add(derivedEntityB);
-
-                    context.SaveChanges();
-                    Console.WriteLine("Entities are Added");
-                }
-
-                //Query the Inheritance Hierarchy
-                //You can query the inheritance hierarchy using LINQ queries
-                using (var context = new EFCoreDbContext())
+                // Create a new CardPayment (Debit Card)
+                var cardPaymentDebit = new CardPayment
                 {
-                    var DerivedEntities1 = context.BaseEntites.OfType<DerivedEntity1>().ToList();
-                    foreach (DerivedEntity1 derivedEntity1 in DerivedEntities1)
-                    {
-                        Console.WriteLine($"\tDerivedEntityA: Id: {derivedEntity1.Id}, Property1: {derivedEntity1.Property1}, CommonProperty: {derivedEntity1.CommonProperty}");
-                    }
+                    Amount = 2000.00m,
+                    PaymentDate = DateTime.Now,
+                    Currency = "INR",
+                    CardNumber = "5111111111111111",
+                    CardHolderName = "Anjali Mehta",
+                    ExpiryDate = new DateTime(2025, 11, 30),
+                    CVV = "456",
+                    CardType = CardType.Debit
+                };
 
-                    var DerivedEntities2 = context.BaseEntites.OfType<DerivedEntity2>().ToList();
-                    foreach (DerivedEntity2 derivedEntity2 in DerivedEntities2)
-                    {
-                        Console.WriteLine($"\tDerivedEntityA: Id: {derivedEntity2.Id}, Property2: {derivedEntity2.Property2}, CommonProperty: {derivedEntity2.CommonProperty}");
-                    }
-                }
+                // Create a new UPIPayment
+                var upiPayment = new UPIPayment
+                {
+                    Amount = 750.00m,
+                    PaymentDate = DateTime.Now,
+                    Currency = "INR",
+                    UPIId = "ravi@upi",
+                    UPITransactionId = "TXN1234567890"
+                };
 
-                Console.Read();
+                // Create a new CashOnDeliveryPayment
+                var codPayment = new CashOnDeliveryPayment
+                {
+                    Amount = 500.00m,
+                    PaymentDate = DateTime.Now,
+                    Currency = "INR",
+                    ExpectedDeliveryDate = DateTime.Now.AddDays(3),
+                    PaymentReceived = false
+                };
+
+                // Add payments to the context
+                context.Payments.AddRange(cardPaymentCredit, cardPaymentDebit, upiPayment, codPayment);
+
+                // Save changes to the database
+                context.SaveChanges();
+
+                Console.WriteLine("Payments have been created and saved to the database.\n");
             }
+        }
 
-            catch (Exception ex)
+        //Reads and displays all payment records from the database.
+        static void ReadPayments()
+        {
+            using (var context = new EFCoreDbContext())
             {
-                Console.WriteLine($"Error: {ex.Message}"); ;
+                // Retrieve all payments from the database
+                var payments = context.Payments.ToList();
+
+                Console.WriteLine("Displaying all payments:");
+
+                foreach (var payment in payments)
+                {
+                    Console.WriteLine($"Payment ID: {payment.PaymentId}, Amount: {payment.Amount}, Payment Date: {payment.PaymentDate}, Currency: {payment.Currency}, Payment Type: {payment.GetType().Name}");
+
+                    // Use pattern matching to access derived class properties
+                    if (payment is CardPayment cardPayment)
+                    {
+                        Console.WriteLine($"\tCard Type: {cardPayment.CardType}, Card Number: {cardPayment.CardNumber}");
+                        Console.WriteLine($"\tCard Holder Name: {cardPayment.CardHolderName}, Expiry Date: {cardPayment.ExpiryDate?.ToShortDateString()}");
+                    }
+                    else if (payment is UPIPayment upi)
+                    {
+                        Console.WriteLine($"\tUPI ID: {upi.UPIId}, UPI Transaction ID: {upi.UPITransactionId}");
+                    }
+                    else if (payment is CashOnDeliveryPayment cod)
+                    {
+                        Console.WriteLine($"\tExpected Delivery Date: {cod.ExpectedDeliveryDate?.ToShortDateString()}");
+                        Console.WriteLine($"\tPayment Received: {cod.PaymentReceived}, Payment Received Date: {cod.PaymentReceivedDate?.ToShortDateString()}");
+                    }
+
+                    Console.WriteLine();
+                }
             }
         }
     }

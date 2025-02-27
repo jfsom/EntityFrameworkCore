@@ -1,23 +1,26 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-
 namespace EFCoreCodeFirstDemo.Entities
 {
     public class EFCoreDbContext : DbContext
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            // Configure the SQL Server connection string
+            //// Configuring the connection string to the SQL Server database
             optionsBuilder.UseSqlServer(@"Server=DESKTOP-RUC57UF;Database=StudentDB;Trusted_Connection=True;TrustServerCertificate=True;");
         }
 
+        // Configures the model and mappings between entities and database
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<BaseEntity>().UseTpcMappingStrategy();
-            modelBuilder.Entity<DerivedEntity1>().ToTable("DerivedTable1");
-            modelBuilder.Entity<DerivedEntity2>().ToTable("DerivedTable2");
+            // Configuring Table-Per-Hierarchy (TPH) inheritance for Payment entities
+            modelBuilder.Entity<Payment>()
+                .HasDiscriminator<string>("PaymentType") // Adds a discriminator column named 'PaymentType'
+                .HasValue<CardPayment>("Card")          // Sets discriminator value 'Card' for CardPayment entities
+                .HasValue<UPIPayment>("UPI")            // Sets discriminator value 'UPI' for UPIPayment entities
+                .HasValue<CashOnDeliveryPayment>("COD"); // Sets discriminator value 'COD' for CashOnDeliveryPayment entities
         }
-        public DbSet<BaseEntity> BaseEntites { get; set; }
 
+        // DbSet representing the Payments table in the database
+        public DbSet<Payment> Payments { get; set; }
     }
 }
