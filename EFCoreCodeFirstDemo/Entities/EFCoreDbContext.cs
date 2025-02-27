@@ -13,11 +13,8 @@ namespace EFCoreCodeFirstDemo.Entities
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<BaseEntity>()
-                .ToTable("Entities")
-                .HasDiscriminator<string>("entity_type")
-                .HasValue<DerivedEntityA>("EntityA")
-                .HasValue<DerivedEntityB>("EntityB");
+            modelBuilder.Entity<DerivedEntity1>().HasBaseType<BaseEntity>();
+            modelBuilder.Entity<DerivedEntity2>().HasBaseType<BaseEntity>();
         }
         public DbSet<BaseEntity> BaseEntites { get; set; }
 

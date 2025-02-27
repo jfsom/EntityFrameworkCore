@@ -12,16 +12,9 @@ namespace EFCoreCodeFirstDemo
                 //and save them to the database
                 using (var context = new EFCoreDbContext())
                 {
-                    var derivedEntityA = new DerivedEntityA { PropertyA = "SomeValueA", CommonProperty = "SomeCommonValue" };
-                    var derivedEntityB = new DerivedEntityB { PropertyB = "SomeValueB", CommonProperty = "SomeCommonValue" };
+                    var derivedEntityA = new DerivedEntity1 { Property1 = "SomeValue1", CommonProperty = "SomeCommonValue" };
+                    var derivedEntityB = new DerivedEntity2 { Property2 = "SomeValue2", CommonProperty = "SomeCommonValue" };
 
-                    //context.BaseEntites.Add(derivedEntityA);
-                    //context.BaseEntites.Add(derivedEntityB);
-
-                    //List<BaseEntity> entities = new List<BaseEntity>();
-                    //entities.Add(derivedEntityA);
-                    //entities.Add(derivedEntityB);
-                    //context.BaseEntites.AddRange(entities);
                     context.BaseEntites.AddRange(derivedEntityA, derivedEntityB);
                     context.SaveChanges();
                     Console.WriteLine("Entities are Added");
@@ -33,15 +26,15 @@ namespace EFCoreCodeFirstDemo
                 {
                     var baseEntities = context.BaseEntites.ToList();
 
-                    foreach (var entity in baseEntities)
+                    foreach (var vehicle in baseEntities)
                     {
-                        if (entity is DerivedEntityA derivedEntityA)
+                        if (vehicle is DerivedEntity1 derivedEntityA)
                         {
-                            Console.WriteLine($"\tDerivedEntityA: Id: {derivedEntityA.Id}, PropertyA: {derivedEntityA.PropertyA}, CommonProperty: {derivedEntityA.CommonProperty}");
+                            Console.WriteLine($"\tDerivedEntityA: Id: {derivedEntityA.Id}, Property1: {derivedEntityA.Property1}, CommonProperty: {derivedEntityA.CommonProperty}");
                         }
-                        else if (entity is DerivedEntityB derivedEntityB)
+                        else if (vehicle is DerivedEntity2 derivedEntityB)
                         {
-                            Console.WriteLine($"\tDerivedEntityB: Id: {derivedEntityB.Id}, PropertyA: {derivedEntityB.PropertyB}, CommonProperty: {derivedEntityB.CommonProperty}");
+                            Console.WriteLine($"\tDerivedEntityB: Id: {derivedEntityB.Id}, Property2: {derivedEntityB.Property2}, CommonProperty: {derivedEntityB.CommonProperty}");
                         }
                     }
                 }

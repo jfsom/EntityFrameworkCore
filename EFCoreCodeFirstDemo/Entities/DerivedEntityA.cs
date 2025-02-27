@@ -1,13 +1,15 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 namespace EFCoreCodeFirstDemo.Entities
 {
-    public class DerivedEntityA : BaseEntity
+    [Table("DerivedTable1")]
+    public class DerivedEntity1 : BaseEntity
     {
-        public string PropertyA { get; set; }
+        public string Property1 { get; set; }
     }
 
-    public class DerivedEntityB : BaseEntity
+    [Table("DerivedTable2")]
+    public class DerivedEntity2 : BaseEntity
     {
-        public string PropertyB { get; set; }
+        public string Property2 { get; set; }
     }
 }

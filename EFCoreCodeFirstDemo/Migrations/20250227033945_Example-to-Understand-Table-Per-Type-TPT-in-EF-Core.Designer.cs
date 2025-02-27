@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EFCoreCodeFirstDemo.Migrations
 {
     [DbContext(typeof(EFCoreDbContext))]
-    [Migration("20250227032051_entity-framework-core-inheritance")]
-    partial class entityframeworkcoreinheritance
+    [Migration("20250227033945_Example-to-Understand-Table-Per-Type-TPT-in-EF-Core")]
+    partial class ExampletoUnderstandTablePerTypeTPTinEFCore
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -36,40 +36,51 @@ namespace EFCoreCodeFirstDemo.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("entity_type")
-                        .IsRequired()
-                        .HasMaxLength(13)
-                        .HasColumnType("nvarchar(13)");
-
                     b.HasKey("Id");
 
-                    b.ToTable("Entities", (string)null);
+                    b.ToTable("BaseTable");
 
-                    b.HasDiscriminator<string>("entity_type").HasValue("BaseEntity");
-
-                    b.UseTphMappingStrategy();
+                    b.UseTptMappingStrategy();
                 });
 
-            modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.DerivedEntityA", b =>
+            modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.DerivedEntity1", b =>
                 {
                     b.HasBaseType("EFCoreCodeFirstDemo.Entities.BaseEntity");
 
-                    b.Property<string>("PropertyA")
+                    b.Property<string>("Property1")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasDiscriminator().HasValue("EntityA");
+                    b.ToTable("DerivedTable1");
                 });
 
-            modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.DerivedEntityB", b =>
+            modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.DerivedEntity2", b =>
                 {
                     b.HasBaseType("EFCoreCodeFirstDemo.Entities.BaseEntity");
 
-                    b.Property<string>("PropertyB")
+                    b.Property<string>("Property2")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasDiscriminator().HasValue("EntityB");
+                    b.ToTable("DerivedTable2");
+                });
+
+            modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.DerivedEntity1", b =>
+                {
+                    b.HasOne("EFCoreCodeFirstDemo.Entities.BaseEntity", null)
+                        .WithOne()
+                        .HasForeignKey("EFCoreCodeFirstDemo.Entities.DerivedEntity1", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.DerivedEntity2", b =>
+                {
+                    b.HasOne("EFCoreCodeFirstDemo.Entities.BaseEntity", null)
+                        .WithOne()
+                        .HasForeignKey("EFCoreCodeFirstDemo.Entities.DerivedEntity2", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }
