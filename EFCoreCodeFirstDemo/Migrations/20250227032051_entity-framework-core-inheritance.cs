@@ -5,25 +5,25 @@
 namespace EFCoreCodeFirstDemo.Migrations
 {
     /// <inheritdoc />
-    public partial class EntityFramework : Migration
+    public partial class entityframeworkcoreinheritance : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Students",
+                name: "Entities",
                 columns: table => new
                 {
-                    StudentId = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Branch = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Gender = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    CommonProperty = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    entity_type = table.Column<string>(type: "nvarchar(13)", maxLength: 13, nullable: false),
+                    PropertyA = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PropertyB = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Students", x => x.StudentId);
+                    table.PrimaryKey("PK_Entities", x => x.Id);
                 });
         }
 
@@ -31,7 +31,7 @@ namespace EFCoreCodeFirstDemo.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Students");
+                name: "Entities");
         }
     }
 }
