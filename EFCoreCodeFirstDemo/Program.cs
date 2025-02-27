@@ -7,45 +7,67 @@ namespace EFCoreCodeFirstDemo
         {
             using (var context = new EFCoreDbContext())
             {
-                // The Contents DbSet will returns records from the base Contents table.
-                // Since TPT creates separate tables for each derived class,
-                // this query will hit multiple tables(Joining with Articles, Videos, Images)
-                // But we can only access the properties which are available in base Content type
-                var contents = context.Contents.ToList();
+                // Fetch an existing article by its primary key (ContentId)
+                var article = context.Articles.FirstOrDefault(a => a.ContentId == 1);
 
-                //We loop through the contents and display the common properties
-                //such as ContentId, Title, ContentType, Author, and PublishedDate.
-                Console.WriteLine("----- List of All Content -----");
-                foreach (var content in contents)
+                if (article != null)
                 {
-                    Console.WriteLine($"Content ID: {content.ContentId}, Title: {content.Title}, Type: {content.ContentType}, Author: {content.Author}, Published: {content.PublishedDate.ToShortDateString()}");
+                    // Update the article's properties
+                    article.Title = "Updated: Understanding EF Core TPT Inheritance";
+                    article.Summary = "Updated Summary for EF Core TPT Inheritance";
+                    article.ReadingTime = 12;
+                    article.LastEditedDate = DateTime.Now;
+
+                    // Save the changes to the database
+                    context.SaveChanges();
+
+                    // Output result
+                    Console.WriteLine($"Article (ID: {article.ContentId}) has been updated.");
+                }
+                else
+                {
+                    Console.WriteLine("Article not found.");
                 }
 
-                //Separate queries for Articles, Videos, and Images are run, and
-                //we display specific properties relevant to each derived type
+                // Fetch an existing video by its primary key (ContentId)
+                var video = context.Videos.FirstOrDefault(v => v.ContentId == 3);
 
-                // Query and display details of all Articles
-                var articles = context.Articles.ToList();
-                Console.WriteLine("\n----- List of Articles -----");
-                foreach (var article in articles)
+                if (video != null)
                 {
-                    Console.WriteLine($"Article ID: {article.ContentId}, Title: {article.Title}, Summary: {article.Summary}, Reading Time: {article.ReadingTime} minutes");
+                    // Update the video's properties
+                    video.Title = "Updated: Learn EF Core with Videos";
+                    video.Duration = 4500; // Updated to 75 minutes
+                    video.HasSubtitles = false; // Removing subtitles
+
+                    // Save the changes to the database
+                    context.SaveChanges();
+
+                    // Output result
+                    Console.WriteLine($"Video (ID: {video.ContentId}) has been updated.");
+                }
+                else
+                {
+                    Console.WriteLine("Video not found.");
                 }
 
-                // Query and display details of all Videos
-                var videos = context.Videos.ToList();
-                Console.WriteLine("\n----- List of Videos -----");
-                foreach (var video in videos)
-                {
-                    Console.WriteLine($"Video ID: {video.ContentId}, Title: {video.Title}, URL: {video.VideoUrl}, Duration: {video.Duration / 60} minutes");
-                }
+                // Fetch an existing image by its primary key (ContentId)
+                var image = context.Images.FirstOrDefault(i => i.ContentId == 2);
 
-                // Query and display details of all Images
-                var images = context.Images.ToList();
-                Console.WriteLine("\n----- List of Images -----");
-                foreach (var image in images)
+                if (image != null)
                 {
-                    Console.WriteLine($"Image ID: {image.ContentId}, Title: {image.Title}, URL: {image.ImageUrl}, Dimensions: {image.Dimensions}, Photographer: {image.Photographer}");
+                    // Update the image's properties
+                    image.AltText = "Updated EF Core Infographic Alt Text";
+                    image.Photographer = "Updated: Alice Johnson";
+
+                    // Save the changes to the database
+                    context.SaveChanges();
+
+                    // Output result
+                    Console.WriteLine($"Image (ID: {image.ContentId}) has been updated.");
+                }
+                else
+                {
+                    Console.WriteLine("Image not found.");
                 }
             }
         }
