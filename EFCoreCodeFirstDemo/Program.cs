@@ -1,47 +1,76 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
 namespace EFCoreCodeFirstDemo
 {
-    class Program
+    public class Program
     {
         static void Main(string[] args)
         {
-            // Perform Delete operations
-            DeletePayment();
-        }
-
-        // Deletes a specific payment record from the database.
-        static void DeletePayment()
-        {
             using (var context = new EFCoreDbContext())
             {
-                // Prompt user to enter the Payment ID to delete
-                Console.Write("Enter the Payment ID to delete: ");
-                if (int.TryParse(Console.ReadLine(), out int paymentId))
+                // Create and seed Article content
+                var article = new Article
                 {
-                    // Retrieve the payment with the specified Payment ID
-                    var paymentToDelete = context.Payments.Find(paymentId);
+                    Title = "Understanding EF Core TPT Inheritance",
+                    Author = "Pranaya Rout",
+                    PublishedDate = DateTime.Now,
+                    ContentType = ContentType.Article,
+                    Status = ContentStatus.Published,
+                    Content = "This is a comprehensive guide on implementing TPT Inheritance...",
+                    Summary = "EF Core TPT Inheritance",
+                    ReadingTime = 10,
+                    FeaturedImage = "https://example.com/image.jpg",
+                    LastEditedDate = DateTime.Now,
+                    MetaTitle = "EF Core TPT",
+                    MetaKeywords = "EF Core, Inheritance, TPT",
+                    MetaDescription = "Learn about TPT inheritance in EF Core with examples."
+                };
 
-                    if (paymentToDelete != null)
-                    {
-                        Console.WriteLine($"Deleting Payment ID: {paymentToDelete.PaymentId}, Type: {paymentToDelete.GetType().Name}");
-
-                        // Remove the payment from the context
-                        context.Payments.Remove(paymentToDelete);
-
-                        // Save changes to the database
-                        context.SaveChanges();
-
-                        Console.WriteLine("Payment has been deleted successfully.");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Payment not found for deletion.");
-                    }
-                }
-                else
+                // Create and seed Video content
+                var video = new Video
                 {
-                    Console.WriteLine("Invalid Payment ID.");
-                }
+                    Title = "Learn EF Core with Videos",
+                    Author = "Rakesh Kumar",
+                    PublishedDate = DateTime.Now,
+                    ContentType = ContentType.Video,
+                    Status = ContentStatus.Published,
+                    VideoUrl = "http://example.com/learn-efcore.mp4",
+                    ThumbnailUrl = "https://example.com/thumbnail.jpg",
+                    Duration = 3600,
+                    Resolution = "1080p",
+                    HasSubtitles = true,
+                    Subtitles = "http://example.com/subtitles.srt",
+                    MetaKeywords = "EF Core, Video, Learning",
+                    MetaDescription = "Learn EF Core through comprehensive video tutorials."
+                };
+
+                // Create and seed Image content
+                var image = new Image
+                {
+                    Title = "EF Core Infographic",
+                    Author = "Hina Sharma",
+                    PublishedDate = DateTime.Now,
+                    ContentType = ContentType.Image,
+                    Status = ContentStatus.Published,
+                    Caption = "EF Core Architecture Diagram",
+                    ImageUrl = "http://example.com/efcore-infographic.jpg",
+                    AltText = "EF Core Infographic",
+                    Dimensions = "1920x1080",
+                    Photographer = "Hina Sharma"
+                };
+
+                // Add the new content to the context
+                context.Articles.Add(article);
+                context.Videos.Add(video);
+                context.Images.Add(image);
+
+                // Save the changes to the database
+                int recordsAdded = context.SaveChanges();
+
+                // Output the result
+                Console.WriteLine($"{recordsAdded} records were saved to the database.");
+
+                // Confirm insertion
+                Console.WriteLine("Content items have been successfully added.");
             }
         }
     }
