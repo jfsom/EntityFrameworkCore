@@ -21,13 +21,16 @@ namespace EFCoreCodeFirstDemo.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.HasSequence("BaseEntitySequence");
+
             modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.BaseEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasDefaultValueSql("NEXT VALUE FOR [BaseEntitySequence]");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseSequence(b.Property<int>("Id"));
 
                     b.Property<string>("CommonProperty")
                         .IsRequired()
@@ -35,9 +38,9 @@ namespace EFCoreCodeFirstDemo.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BaseTable");
+                    b.ToTable((string)null);
 
-                    b.UseTptMappingStrategy();
+                    b.UseTpcMappingStrategy();
                 });
 
             modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.DerivedEntity1", b =>
@@ -48,7 +51,7 @@ namespace EFCoreCodeFirstDemo.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.ToTable("DerivedTable1");
+                    b.ToTable("DerivedTable1", (string)null);
                 });
 
             modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.DerivedEntity2", b =>
@@ -59,25 +62,7 @@ namespace EFCoreCodeFirstDemo.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.ToTable("DerivedTable2");
-                });
-
-            modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.DerivedEntity1", b =>
-                {
-                    b.HasOne("EFCoreCodeFirstDemo.Entities.BaseEntity", null)
-                        .WithOne()
-                        .HasForeignKey("EFCoreCodeFirstDemo.Entities.DerivedEntity1", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.DerivedEntity2", b =>
-                {
-                    b.HasOne("EFCoreCodeFirstDemo.Entities.BaseEntity", null)
-                        .WithOne()
-                        .HasForeignKey("EFCoreCodeFirstDemo.Entities.DerivedEntity2", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.ToTable("DerivedTable2", (string)null);
                 });
 #pragma warning restore 612, 618
         }

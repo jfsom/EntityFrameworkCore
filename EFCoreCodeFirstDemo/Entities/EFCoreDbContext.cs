@@ -13,8 +13,9 @@ namespace EFCoreCodeFirstDemo.Entities
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<DerivedEntity1>().HasBaseType<BaseEntity>();
-            modelBuilder.Entity<DerivedEntity2>().HasBaseType<BaseEntity>();
+            modelBuilder.Entity<BaseEntity>().UseTpcMappingStrategy();
+            modelBuilder.Entity<DerivedEntity1>().ToTable("DerivedTable1");
+            modelBuilder.Entity<DerivedEntity2>().ToTable("DerivedTable2");
         }
         public DbSet<BaseEntity> BaseEntites { get; set; }
 
