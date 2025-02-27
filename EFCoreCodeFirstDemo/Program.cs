@@ -1,4 +1,5 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace EFCoreCodeFirstDemo
 {
@@ -6,103 +7,82 @@ namespace EFCoreCodeFirstDemo
     {
         static void Main(string[] args)
         {
-            // Perform INSERT and READ operations
-            CreatePayments();
-            ReadPayments();
+            // Perform Update operation
+            UpdatePayment();
         }
 
-        // Creates sample payment records and saves them to the database.
-        static void CreatePayments()
+        // Updates a specific payment record in the database.
+        static void UpdatePayment()
         {
             using (var context = new EFCoreDbContext())
             {
-                // Create a new CardPayment (Credit Card)
-                var cardPaymentCredit = new CardPayment
+                // Prompt user to enter the Payment ID to update
+                Console.Write("Enter the Payment ID to update: ");
+                if (int.TryParse(Console.ReadLine(), out int paymentId))
                 {
-                    Amount = 1500.00m,
-                    PaymentDate = DateTime.Now,
-                    Currency = "INR",
-                    CardNumber = "4111111111111111",
-                    CardHolderName = "Ravi Kumar",
-                    ExpiryDate = new DateTime(2024, 12, 31),
-                    CVV = "123",
-                    CardType = CardType.Credit
-                };
+                    // Retrieve the payment with the specified Payment ID
+                    var paymentToUpdate = context.Payments.Find(paymentId);
+                    // Since all payments are in one table, the Find method looks up the record by PaymentId.
+                    //EF Core reads the PaymentType discriminator column to determine the actual type of the payment(CardPayment, UPIPayment, or CashOnDeliveryPayment
+                    //F Core instantiates the correct derived class based on the discriminator value.
 
-                // Create a new CardPayment (Debit Card)
-                var cardPaymentDebit = new CardPayment
-                {
-                    Amount = 2000.00m,
-                    PaymentDate = DateTime.Now,
-                    Currency = "INR",
-                    CardNumber = "5111111111111111",
-                    CardHolderName = "Anjali Mehta",
-                    ExpiryDate = new DateTime(2025, 11, 30),
-                    CVV = "456",
-                    CardType = CardType.Debit
-                };
-
-                // Create a new UPIPayment
-                var upiPayment = new UPIPayment
-                {
-                    Amount = 750.00m,
-                    PaymentDate = DateTime.Now,
-                    Currency = "INR",
-                    UPIId = "ravi@upi",
-                    UPITransactionId = "TXN1234567890"
-                };
-
-                // Create a new CashOnDeliveryPayment
-                var codPayment = new CashOnDeliveryPayment
-                {
-                    Amount = 500.00m,
-                    PaymentDate = DateTime.Now,
-                    Currency = "INR",
-                    ExpectedDeliveryDate = DateTime.Now.AddDays(3),
-                    PaymentReceived = false
-                };
-
-                // Add payments to the context
-                context.Payments.AddRange(cardPaymentCredit, cardPaymentDebit, upiPayment, codPayment);
-
-                // Save changes to the database
-                context.SaveChanges();
-
-                Console.WriteLine("Payments have been created and saved to the database.\n");
-            }
-        }
-
-        //Reads and displays all payment records from the database.
-        static void ReadPayments()
-        {
-            using (var context = new EFCoreDbContext())
-            {
-                // Retrieve all payments from the database
-                var payments = context.Payments.ToList();
-
-                Console.WriteLine("Displaying all payments:");
-
-                foreach (var payment in payments)
-                {
-                    Console.WriteLine($"Payment ID: {payment.PaymentId}, Amount: {payment.Amount}, Payment Date: {payment.PaymentDate}, Currency: {payment.Currency}, Payment Type: {payment.GetType().Name}");
-
-                    // Use pattern matching to access derived class properties
-                    if (payment is CardPayment cardPayment)
+                    if (paymentToUpdate != null)
                     {
-                        Console.WriteLine($"\tCard Type: {cardPayment.CardType}, Card Number: {cardPayment.CardNumber}");
-                        Console.WriteLine($"\tCard Holder Name: {cardPayment.CardHolderName}, Expiry Date: {cardPayment.ExpiryDate?.ToShortDateString()}");
-                    }
-                    else if (payment is UPIPayment upi)
-                    {
-                        Console.WriteLine($"\tUPI ID: {upi.UPIId}, UPI Transaction ID: {upi.UPITransactionId}");
-                    }
-                    else if (payment is CashOnDeliveryPayment cod)
-                    {
-                        Console.WriteLine($"\tExpected Delivery Date: {cod.ExpectedDeliveryDate?.ToShortDateString()}");
-                        Console.WriteLine($"\tPayment Received: {cod.PaymentReceived}, Payment Received Date: {cod.PaymentReceivedDate?.ToShortDateString()}");
-                    }
+                        Console.WriteLine($"Updating Payment ID: {paymentToUpdate.PaymentId}, Type: {paymentToUpdate.GetType().Name}");
 
-                    Console.WriteLine();
+                        // Update common properties
+                        Console.Write("Enter new amount (leave blank to keep current): ");
+                        var amountInput = Console.ReadLine();
+                        if (decimal.TryParse(amountInput, out decimal newAmount))
+                        {
+                            paymentToUpdate.Amount = newAmount;
+                        }
+
+                        // Update properties based on payment type
+                        // Uses is pattern matching to check if paymentToUpdate is a CardPayment.
+                        if (paymentToUpdate is CardPayment cardPayment)
+                        {
+                            Console.Write("Enter new Card Holder Name (leave blank to keep current): ");
+                            var newName = Console.ReadLine();
+                            if (!string.IsNullOrEmpty(newName))
+                            {
+                                cardPayment.CardHolderName = newName;
+                            }
+                            //If you want you can also update other properties as required
+                        }
+                        else if (paymentToUpdate is UPIPayment upiPayment)
+                        {
+                            Console.Write("Enter new UPI ID (leave blank to keep current): ");
+                            var newUPIId = Console.ReadLine();
+                            if (!string.IsNullOrEmpty(newUPIId))
+                            {
+                                upiPayment.UPIId = newUPIId;
+                            }
+                        }
+                        else if (paymentToUpdate is CashOnDeliveryPayment codPayment)
+                        {
+                            Console.Write("Has payment been received? (y/n): ");
+                            var paymentReceivedInput = Console.ReadLine();
+                            if (paymentReceivedInput?.ToLower() == "y")
+                            {
+                                codPayment.PaymentReceived = true;
+                                codPayment.PaymentReceivedDate = DateTime.Now;
+                            }
+                        }
+
+                        // Save changes to the database
+                        context.SaveChanges();
+
+                        Console.WriteLine("Payment has been updated successfully.\n");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Payment not found for update.\n");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Invalid Payment ID.\n");
                 }
             }
         }
