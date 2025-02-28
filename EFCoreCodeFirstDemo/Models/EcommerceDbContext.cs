@@ -209,4 +209,11 @@ public partial class EcommerceDbContext : DbContext
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+    // Define the stored function
+    [DbFunction("CalculateDiscount", "dbo")]
+    public static decimal? CalculateDiscount(decimal? totalAmount)
+    {
+        // This method is for EF Core to know how to call the function.
+        throw new NotImplementedException();
+    }
 }
