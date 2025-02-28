@@ -2,8 +2,6 @@
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-
 namespace EFCoreCodeFirstDemo.Migrations
 {
     /// <inheritdoc />
@@ -64,36 +62,6 @@ namespace EFCoreCodeFirstDemo.Migrations
                         principalTable: "States",
                         principalColumn: "StateId",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.InsertData(
-                table: "Countries",
-                columns: new[] { "CountryId", "CountryCode", "CountryName" },
-                values: new object[,]
-                {
-                    { 1, "IND", "India" },
-                    { 2, "AUS", "Australia" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "States",
-                columns: new[] { "StateId", "CountryId", "StateName" },
-                values: new object[,]
-                {
-                    { 1, 1, "Odisha" },
-                    { 2, 1, "Delhi" },
-                    { 3, 2, "New South Wales" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Cities",
-                columns: new[] { "CityId", "CityName", "StateId" },
-                values: new object[,]
-                {
-                    { 1, "Bhubaneswar", 1 },
-                    { 2, "Cuttack", 1 },
-                    { 3, "New Delhi", 2 },
-                    { 4, "Sydney", 3 }
                 });
 
             migrationBuilder.CreateIndex(

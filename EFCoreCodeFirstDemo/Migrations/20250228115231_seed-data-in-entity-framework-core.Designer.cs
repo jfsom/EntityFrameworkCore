@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EFCoreCodeFirstDemo.Migrations
 {
     [DbContext(typeof(EFCoreDbContext))]
-    [Migration("20250228114322_seed-data-in-entity-framework-core")]
+    [Migration("20250228115231_seed-data-in-entity-framework-core")]
     partial class seeddatainentityframeworkcore
     {
         /// <inheritdoc />
@@ -45,32 +45,6 @@ namespace EFCoreCodeFirstDemo.Migrations
                     b.HasIndex("StateId");
 
                     b.ToTable("Cities");
-
-                    b.HasData(
-                        new
-                        {
-                            CityId = 1,
-                            CityName = "Bhubaneswar",
-                            StateId = 1
-                        },
-                        new
-                        {
-                            CityId = 2,
-                            CityName = "Cuttack",
-                            StateId = 1
-                        },
-                        new
-                        {
-                            CityId = 3,
-                            CityName = "New Delhi",
-                            StateId = 2
-                        },
-                        new
-                        {
-                            CityId = 4,
-                            CityName = "Sydney",
-                            StateId = 3
-                        });
                 });
 
             modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.Country", b =>
@@ -94,20 +68,6 @@ namespace EFCoreCodeFirstDemo.Migrations
                     b.HasKey("CountryId");
 
                     b.ToTable("Countries");
-
-                    b.HasData(
-                        new
-                        {
-                            CountryId = 1,
-                            CountryCode = "IND",
-                            CountryName = "India"
-                        },
-                        new
-                        {
-                            CountryId = 2,
-                            CountryCode = "AUS",
-                            CountryName = "Australia"
-                        });
                 });
 
             modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.State", b =>
@@ -131,26 +91,6 @@ namespace EFCoreCodeFirstDemo.Migrations
                     b.HasIndex("CountryId");
 
                     b.ToTable("States");
-
-                    b.HasData(
-                        new
-                        {
-                            StateId = 1,
-                            CountryId = 1,
-                            StateName = "Odisha"
-                        },
-                        new
-                        {
-                            StateId = 2,
-                            CountryId = 1,
-                            StateName = "Delhi"
-                        },
-                        new
-                        {
-                            StateId = 3,
-                            CountryId = 2,
-                            StateName = "New South Wales"
-                        });
                 });
 
             modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.City", b =>

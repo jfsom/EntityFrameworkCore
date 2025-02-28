@@ -10,6 +10,11 @@ namespace EFCoreCodeFirstDemo
             {
                 using (var context = new EFCoreDbContext())
                 {
+                    // Initialize and seed the database
+                    DbInitializer.Initialize(context);
+
+                    // Display the seeded data
+
                     // Retrieve and display Countries
                     Console.WriteLine("=== Country Master Data ===");
                     var countries = context.Countries.ToList();
