@@ -1,105 +1,115 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Transactions;
 
 namespace EFCoreCodeFirstDemo
 {
     public class Program
     {
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
-            // Initialize the DbContext for interacting with the ECommerce database
-            using var context = new ECommerceDbContext();
+            // Enable implicit distributed transactions in case operations span multiple databases
+            TransactionManager.ImplicitDistributedTransactions = true;
 
-            // Begin a manual transaction using the context
-            using var transaction = await context.Database.BeginTransactionAsync();
-            Console.WriteLine("Transaction started...");
-
-            try
+            // Define transaction options: Isolation level (ReadCommitted) and timeout duration (default 1 minute)
+            var transactionOptions = new TransactionOptions
             {
-                // 1. Create a new order with order items and initial payment status (Pending)
-                var order = new Order
-                {
-                    OrderDate = DateTime.UtcNow, // Set the current UTC time for the order date
-                    TotalAmount = 150.00m, // Set the total amount of the order
+                IsolationLevel = IsolationLevel.ReadCommitted, // Ensures data read is committed, avoiding dirty reads
+                Timeout = TransactionManager.DefaultTimeout // Default transaction timeout
+            };
 
-                    // Define the items in the order (in this case, one item)
-                    OrderItems = new List<OrderItem>
+            // Start a TransactionScope to encompass operations across different DbContexts
+            using (var scope = new TransactionScope(
+                TransactionScopeOption.Required, // Requires a new transaction or joins an existing one
+                transactionOptions,
+                TransactionScopeAsyncFlowOption.Enabled)) // Enables async operations within the transaction
+            {
+                try
+                {
+                    int generatedOrderId; // Variable to hold the generated OrderId for logging purposes
+
+                    // 1. Perform operations using ECommerceDbContext to handle order-related activities
+                    using (var orderContext = new ECommerceDbContext())
                     {
-                        new OrderItem
+                        // Create a new order with associated OrderItems and Payment details
+                        var order = new Order
                         {
-                            ProductId = 1, // The ProductId of the item being ordered
-                            Quantity = 1, // Number of units ordered
-                            Price = 150.00m // Price per unit
-                        }
-                    },
+                            OrderDate = DateTime.UtcNow, // Set the order date to the current UTC time
+                            TotalAmount = 300.00m, // Set the total amount for the order
 
-                    // Define the payment details associated with the order
-                    Payment = new Payment
-                    {
-                        PaymentDate = DateTime.UtcNow, // Set the payment date as the current UTC time
-                        Amount = 150.00m, // Set the payment amount to match the order total
-                        Status = PaymentStatus.Pending // Set the initial payment status to 'Pending'
+                            // Create a list of order items for the order
+                            OrderItems = new List<OrderItem>
+                            {
+                                new OrderItem
+                                {
+                                    ProductId = 2, // Refers to the Product with ID 2
+                                    Quantity = 3, // Quantity of the product ordered
+                                    Price = 100.00m // Price per unit
+                                }
+                            },
+
+                            // Create a payment entry for the order
+                            Payment = new Payment
+                            {
+                                PaymentDate = DateTime.UtcNow, // Set the payment date to the current UTC time
+                                Amount = 300.00m, // Payment amount matches the total order amount
+                                Status = PaymentStatus.Pending // Initial status of the payment is 'Pending'
+                            }
+                        };
+
+                        // Add the newly created order to the Orders DbSet
+                        orderContext.Orders.Add(order);
+                        Console.WriteLine("Order and associated details added to the DbContext...");
+
+                        // Save changes to the database to insert the order, order items, and payment into the database
+                        orderContext.SaveChanges();
+                        Console.WriteLine("Order saved to the database.");
+
+                        // Store the generated OrderId for logging purposes
+                        generatedOrderId = order.OrderId;
+                        Console.WriteLine($"Order ID {order.OrderId} created with initial payment status '{order.Payment.Status}'.");
                     }
-                };
 
-                // Add the new order to the Orders DbSet in the context
-                context.Orders.Add(order);
-                Console.WriteLine("Order and associated payment details added to the DbContext...");
+                    // 2. Perform logging operations using LoggingDbContext
+                    using (var logContext = new LoggingDbContext())
+                    {
+                        // Create a new OrderLog entry to record the successful placement of the order
+                        var log = new OrderLog
+                        {
+                            OrderId = generatedOrderId, // Use the generated OrderId for the log entry
+                            LogDate = DateTime.UtcNow, // Set the log date to the current UTC time
+                            Message = "Order placed successfully." // Descriptive log message
+                        };
 
-                // Save changes asynchronously to the database (this inserts the order, items, and payment)
-                await context.SaveChangesAsync();
-                Console.WriteLine($"Order ID {order.OrderId} created with initial payment status '{order.Payment.Status}'.");
+                        // Add the log entry to the OrderLogs DbSet
+                        logContext.OrderLogs.Add(log);
+                        Console.WriteLine("Log entry for the order created...");
 
-                // 2. Update the product inventory based on the ordered item
-                var orderItem = order.OrderItems.First(); // Get the first (and only) order item
-                var product = await context.Products.FirstOrDefaultAsync(p => p.ProductId == orderItem.ProductId); // Fetch the product from the database
+                        // Save the log entry to the logging database
+                        logContext.SaveChanges();
+                        Console.WriteLine($"Log entry saved for Order ID {log.OrderId}.");
+                    }
 
-                if (product != null)
-                {
-                    // Reduce the product's quantity based on the ordered quantity
-                    product.Quantity -= orderItem.Quantity;
-
-                    // Update the 'In Stock' status based on the new quantity
-                    product.IsInStock = product.Quantity > 0;
-
-                    // Update the product in the context
-                    context.Products.Update(product);
-                    Console.WriteLine($"Updating inventory for product '{product.Name}'...");
-
-                    // Save changes asynchronously to reflect the updated inventory in the database
-                    await context.SaveChangesAsync();
-                    Console.WriteLine($"Product '{product.Name}' inventory updated. New Quantity: {product.Quantity}. In Stock: {product.IsInStock}");
+                    // 3. Mark the transaction as complete
+                    scope.Complete();
+                    Console.WriteLine("Transaction successfully completed. Order placed and logged.");
                 }
-                else
+                catch (DbUpdateException ex)
                 {
-                    // If the product is not found, throw an exception to trigger a rollback
-                    throw new Exception("Product not found in the inventory.");
+                    // Handle database-related exceptions such as constraint violations or connection issues
+                    Console.WriteLine($"Database error occurred: {ex.InnerException?.Message ?? ex.Message}");
+
+                    // No explicit rollback is needed here. Disposing the TransactionScope without calling Complete() will automatically roll back the transaction.
+                }
+                catch (Exception ex)
+                {
+                    // Handle any other general exceptions that may occur
+                    Console.WriteLine($"An error occurred: {ex.Message}");
+
+                    // The transaction will be rolled back automatically upon disposal if Complete() is not called.
                 }
 
-                // 3. Update the payment status to 'Completed' after successful inventory update
-                order.Payment.Status = PaymentStatus.Completed; // Update the payment status to 'Completed'
-                context.Payments.Update(order.Payment); // Update the payment entity in the context
-                Console.WriteLine($"Updating payment status for Order ID {order.OrderId}...");
-
-                // Save changes asynchronously to update the payment status in the database
-                await context.SaveChangesAsync();
-                Console.WriteLine($"Payment status for Order ID {order.OrderId} updated to '{order.Payment.Status}'.");
-
-                // Commit the transaction if all operations are successful
-                await transaction.CommitAsync();
-                Console.WriteLine($"Transaction committed successfully for Order ID {order.OrderId}.");
-            }
-            catch (DbUpdateException ex)
-            {
-                // Rollback the transaction if a database update error occurs
-                await transaction.RollbackAsync();
-                Console.WriteLine($"Transaction rolled back due to Database Error: {ex.InnerException?.Message ?? ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                // Rollback the transaction if any other general error occurs
-                await transaction.RollbackAsync();
-                Console.WriteLine($"Transaction rolled back due to an error: {ex.Message}");
+                // At the end of the using block, the TransactionScope is disposed. If Complete() was not called, the transaction is rolled back automatically.
             }
         }
     }
