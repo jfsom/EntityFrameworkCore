@@ -1,4 +1,6 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
+using Microsoft.EntityFrameworkCore;
+
 namespace EFCoreCodeFirstDemo
 {
     public class Program
@@ -9,16 +11,13 @@ namespace EFCoreCodeFirstDemo
             {
                 using var context = new EFCoreDbContext();
 
-                var blog = new Blog { Url = "http://dotnettutorials.net" };
-                context.Blogs.Add(blog);
-                context.SaveChanges();
-
-                var post = new Post { Title = "Hello World", Content = "Welcome to my Blog!" };
-                context.Posts.Add(post);
-
-                // Set the shadow foreign key value
-                context.Entry(post).Property("BlogId").CurrentValue = blog.BlogId;
-                context.SaveChanges();
+                var postsWithBlogs = context.Posts
+                            .Select(p => new
+                            {
+                                Post = p,
+                                BlogId = EF.Property<int>(p, "BlogId") // Access the shadow property
+                            })
+                            .ToList();
 
                 Console.Read();
             }
