@@ -11,32 +11,27 @@ namespace EFCoreCodeFirstDemo.Entities
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Configure the Country entity
-            modelBuilder.Entity<Country>(entity =>
-            {
-                // Set the primary key
-                entity.HasKey(c => c.CountryId);
-                // Configure the one-to-many relationship between Country and State
-                entity.HasMany(c => c.States) // A Country has many States
-                      .WithOne(s => s.Country) // Each State has one Country
-                      .HasForeignKey(s => s.CountryId) // Foreign key in State table
-                      .OnDelete(DeleteBehavior.Cascade); // Enable Cascade Delete
-            });
-            // Configure the State entity
-            modelBuilder.Entity<State>(entity =>
-            {
-                // Set the primary key
-                entity.HasKey(s => s.StateId);
-                // Configure the one-to-many relationship between State and City
-                entity.HasMany(s => s.Cities) // A State has many Cities
-                      .WithOne(c => c.State) // Each City has one State
-                      .HasForeignKey(c => c.StateId) // Foreign key in City table
-                      .OnDelete(DeleteBehavior.Cascade); // Enable Cascade Delete
-            });
+            modelBuilder.Entity<BlogPost>().Property<DateTime>("CreatedAt");
+            modelBuilder.Entity<BlogPost>().Property<DateTime>("LastUpdatedAt");
         }
-        // DbSets representing the tables
-        public DbSet<Country> Countries { get; set; }
-        public DbSet<State> States { get; set; }
-        public DbSet<City> Cities { get; set; }
+
+        public override int SaveChanges()
+        {
+            var timestamp = DateTime.UtcNow;
+            foreach (var entry in ChangeTracker.Entries<BlogPost>())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    entry.Property("CreatedAt").CurrentValue = timestamp;
+                    entry.Property("LastUpdatedAt").CurrentValue = timestamp;
+                }
+                else if (entry.State == EntityState.Modified)
+                {
+                    entry.Property("LastUpdatedAt").CurrentValue = timestamp;
+                }
+            }
+            return base.SaveChanges();
+        }
+        public DbSet<BlogPost> BlogPosts { get; set; }
     }
 }

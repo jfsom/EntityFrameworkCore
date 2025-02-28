@@ -1,53 +1,36 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
-using Microsoft.EntityFrameworkCore;
 namespace EFCoreCodeFirstDemo
 {
     public class Program
     {
-        public static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             try
             {
-                using (var context = new EFCoreDbContext())
+                var blogPost = new BlogPost
                 {
-                    // Initialize and seed the database
-                    DbInitializer.Initialize(context);
+                    Title = "EF Core",
+                    Content = "IT is an ORM Framework"
+                };
 
-                    // Display the seeded data
+                using var context = new EFCoreDbContext();
 
-                    // Retrieve and display Countries
-                    Console.WriteLine("=== Country Master Data ===");
-                    var countries = context.Countries.ToList();
-                    foreach (var country in countries)
-                    {
-                        Console.WriteLine($"Country ID: {country.CountryId}, Name: {country.CountryName}, Code: {country.CountryCode}");
-                    }
+                context.BlogPosts.Add(blogPost);
+                context.SaveChanges();
+                Console.WriteLine("New BlogPost Added..");
+                // Entity Framework Core will set the "CreatedAt" and "LastUpdatedAt" Shadow Properties Value
 
-                    // Retrieve and display States
-                    Console.WriteLine("\n=== State Master Data ===");
-                    var states = context.States
-                                        .Include(s => s.Country)
-                                        .ToList();
-                    foreach (var state in states)
-                    {
-                        Console.WriteLine($"State ID: {state.StateId}, Name: {state.StateName}, Country: {state.Country.CountryName}");
-                    }
+                blogPost.Content = "Entity Framework Core is Updated";
+                context.SaveChanges();
+                // Entity Framework Core will update the "LastUpdatedAt" shadow property value.
 
-                    // Retrieve and display Cities
-                    Console.WriteLine("\n=== City Master Data ===");
-                    var cities = context.Cities
-                                        .Include(c => c.State)
-                                            .ThenInclude(s => s.Country)
-                                        .ToList();
-                    foreach (var city in cities)
-                    {
-                        Console.WriteLine($"City ID: {city.CityId}, Name: {city.CityName}, State: {city.State.StateName}, Country: {city.State.Country.CountryName}");
-                    }
-                }
+                Console.WriteLine("BlogPost Updated..");
+                Console.Read();
             }
+
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred: {ex.Message}");
+                Console.WriteLine($"Error: {ex.Message}");
             }
         }
     }
