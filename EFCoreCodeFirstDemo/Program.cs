@@ -7,62 +7,75 @@ namespace EFCoreCodeFirstDemo
         {
             using (var context = new EFCoreDbContext())
             {
-                // Fetch an article to delete by its primary key (ContentId)
-                var article = context.Articles.FirstOrDefault(a => a.ContentId == 1);
-
-                if (article != null)
+                // Create and seed a Utility Bill
+                var utilityBill = new UtilityBill
                 {
-                    // Remove the article
-                    context.Articles.Remove(article);
+                    InvoiceNumber = "UB001",
+                    BillingDate = DateTime.Now,
+                    CustomerName = "Ravi Kumar",
+                    CustomerEmail = "ravi.kumar@example.com",
+                    BillingAddress = "123 Elm Street",
+                    Status = InvoiceStatus.Pending,
+                    UtilityType = "Electricity",
+                    MeterNumber = "MTR12345",
+                    UsageAmount = 250.75m,
+                    RatePerUnit = 0.40m, // 0.40 per unit of electricity
+                    ServicePeriodStart = DateTime.Now.AddMonths(-1),
+                    ServicePeriodEnd = DateTime.Now,
+                    UtilityProvider = "ElectricCo",
+                    DueDate = DateTime.Now.AddDays(15)
+                };
+                // Calculate the Amount for the utility bill
+                utilityBill.Amount = utilityBill.UsageAmount * utilityBill.RatePerUnit;
 
-                    // Save the changes to the database
-                    context.SaveChanges();
-
-                    // Output result
-                    Console.WriteLine($"Article (ID: {article.ContentId}) has been deleted.");
-                }
-                else
+                // Create and seed a Product Purchase
+                var productPurchase = new ProductPurchase
                 {
-                    Console.WriteLine("Article not found.");
-                }
+                    InvoiceNumber = "PP001",
+                    BillingDate = DateTime.Now,
+                    CustomerName = "Alice Johnson",
+                    CustomerEmail = "alice.johnson@example.com",
+                    BillingAddress = "456 Oak Avenue",
+                    Status = InvoiceStatus.Paid,
+                    ProductName = "Laptop",
+                    Quantity = 1,
+                    UnitPrice = 1500.00m,
+                    Vendor = "TechStore",
+                    ShippingCost = 25.00m,
+                    TrackingNumber = "TRACK123456789"
+                };
+                // Calculate the Amount for the product purchase
+                productPurchase.Amount = (productPurchase.Quantity * productPurchase.UnitPrice) + productPurchase.ShippingCost;
 
-                // Fetch a video to delete by its primary key (ContentId)
-                var video = context.Videos.FirstOrDefault(v => v.ContentId == 3);
 
-                if (video != null)
+                // Create and seed a Subscription Service
+                var subscriptionService = new SubscriptionService
                 {
-                    // Remove the video
-                    context.Videos.Remove(video);
+                    InvoiceNumber = "SS001",
+                    Amount = 99.99m, //Amount equals to SubscriptionFee
+                    BillingDate = DateTime.Now,
+                    CustomerName = "Michael Scott",
+                    CustomerEmail = "michael.scott@example.com",
+                    BillingAddress = "789 Maple Street",
+                    Status = InvoiceStatus.Pending,
+                    ServiceName = "Netflix Subscription",
+                    SubscriptionStart = DateTime.Now,
+                    SubscriptionEnd = DateTime.Now.AddYears(1),
+                    SubscriptionFee = 99.99m,
+                    RenewalFrequency = "Annually",
+                    AutoRenew = true
+                };
 
-                    // Save the changes to the database
-                    context.SaveChanges();
+                // Add all invoices to the context
+                context.UtilityBills.Add(utilityBill);
+                context.ProductPurchases.Add(productPurchase);
+                context.SubscriptionServices.Add(subscriptionService);
 
-                    // Output result
-                    Console.WriteLine($"Video (ID: {video.ContentId}) has been deleted.");
-                }
-                else
-                {
-                    Console.WriteLine("Video not found.");
-                }
+                // Save changes to the database
+                int recordsAdded = context.SaveChanges();
 
-                // Fetch an image to delete by its primary key (ContentId)
-                var image = context.Images.FirstOrDefault(i => i.ContentId == 2);
-
-                if (image != null)
-                {
-                    // Remove the image
-                    context.Images.Remove(image);
-
-                    // Save the changes to the database
-                    context.SaveChanges();
-
-                    // Output result
-                    Console.WriteLine($"Image (ID: {image.ContentId}) has been deleted.");
-                }
-                else
-                {
-                    Console.WriteLine("Image not found.");
-                }
+                // Output the result
+                Console.WriteLine($"{recordsAdded} records were saved to the database.");
             }
         }
     }
