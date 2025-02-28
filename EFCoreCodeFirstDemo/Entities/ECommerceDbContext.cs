@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 namespace EFCoreCodeFirstDemo.Entities
 {
-    public class EFCoreDbContext : DbContext
+    public class ECommerceDbContext : DbContext
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            // Configuring the connection string to the SQL Server database
-            optionsBuilder.UseSqlServer(@"Server=DESKTOP-RUC57UF;Database=StudentDB;Trusted_Connection=True;TrustServerCertificate=True;");
+            // Configure the connection string to your ECommerceDB SQL Server Database
+            optionsBuilder.UseSqlServer(@"Server=DESKTOP-RUC57UF;Database=ECommerceDB;Trusted_Connection=True;TrustServerCertificate=True;");
         }
 
         // Configures the model and mappings between entities and database
@@ -19,11 +19,11 @@ namespace EFCoreCodeFirstDemo.Entities
                 .HasConversion<string>()
                 .IsRequired();    // Optional: Specify if the property is required
         }
+
         // DbSets for primary e-commerce entities
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Payment> Payments { get; set; }
-
     }
 }
