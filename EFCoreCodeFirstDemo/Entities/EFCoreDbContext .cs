@@ -11,14 +11,9 @@ namespace EFCoreCodeFirstDemo.Entities
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Post>()
-              .HasOne(p => p.Blog)
-              .WithMany(b => b.Posts)
-              .HasForeignKey("BlogId"); // Configure BlogId as a shadow property
+            modelBuilder.Entity<User>().Property<bool>("IsActive").HasDefaultValue(true);
         }
-
-        public DbSet<Blog> Blogs { get; set; }
-        public DbSet<Post> Posts { get; set; }
+        public DbSet<User> Users { get; set; }
 
 
     }

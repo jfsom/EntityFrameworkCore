@@ -1,6 +1,4 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
-using Microsoft.EntityFrameworkCore;
-
 namespace EFCoreCodeFirstDemo
 {
     public class Program
@@ -10,14 +8,9 @@ namespace EFCoreCodeFirstDemo
             try
             {
                 using var context = new EFCoreDbContext();
-
-                var postsWithBlogs = context.Posts
-                            .Select(p => new
-                            {
-                                Post = p,
-                                BlogId = EF.Property<int>(p, "BlogId") // Access the shadow property
-                            })
-                            .ToList();
+                var user = new User { Name = "Pranaya Rout" };
+                context.Users.Add(user);
+                context.SaveChanges();
 
                 Console.Read();
             }
