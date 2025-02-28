@@ -1,4 +1,6 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
+using Microsoft.EntityFrameworkCore;
+
 namespace EFCoreCodeFirstDemo
 {
     public class Program
@@ -7,24 +9,24 @@ namespace EFCoreCodeFirstDemo
         {
             try
             {
-                var blogPost = new BlogPost
-                {
-                    Title = "EF Core",
-                    Content = "IT is an ORM Framework"
-                };
-
                 using var context = new EFCoreDbContext();
 
-                context.BlogPosts.Add(blogPost);
-                context.SaveChanges();
-                Console.WriteLine("New BlogPost Added..");
-                // Entity Framework Core will set the "CreatedAt" and "LastUpdatedAt" Shadow Properties Value
+                var blogPostsWithAudit = context.BlogPosts
+                                .Select(bp => new
+                                {
+                                    Title = bp.Title,
+                                    Content = bp.Content,
+                                    CreatedAt = EF.Property<DateTime>(bp, "CreatedAt"),
+                                    LastUpdatedAt = EF.Property<DateTime>(bp, "LastUpdatedAt")
+                                })
+                                .ToList();
 
-                blogPost.Content = "Entity Framework Core is Updated";
-                context.SaveChanges();
-                // Entity Framework Core will update the "LastUpdatedAt" shadow property value.
+                foreach (var blogPost in blogPostsWithAudit)
+                {
+                    Console.WriteLine($"Title: {blogPost.Title}, CreatedAt: {blogPost.CreatedAt}, LastUpdatedAt:{blogPost.LastUpdatedAt}");
+                    Console.WriteLine($"\tContent: {blogPost.Content}");
+                }
 
-                Console.WriteLine("BlogPost Updated..");
                 Console.Read();
             }
 
