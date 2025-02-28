@@ -7,79 +7,131 @@ namespace EcommerceApp
     {
         public static void Main(string[] args)
         {
+            using var context = new EcommerceDbContext();
+            var dbTransaction = context.Database.BeginTransaction();
+
             try
             {
-                // Create an instance of the DbContext to interact with the database
-                using var context = new EcommerceDbContext();
+                // *** Update Order Status, Payment Status, and Adjust Stock Quantities ***
 
-                // *** Retrieve and Display Orders with Details ***
+                // Specify the Order ID that you want to update
+                int orderIdToUpdate = 1; // Change this to the actual Order ID
 
-                Console.WriteLine("Fetching and displaying all orders with customer, order items, and payment details...\n");
+                Console.WriteLine($"Updating Order ID: {orderIdToUpdate}\n");
 
-                // Fetch orders including related data:
-                var orders = context.Orders
-                    .Include(o => o.Customer) // Include customer information
-                    .Include(o => o.OrderItems) // Include order items
-                        .ThenInclude(oi => oi.Product) // Include product details for each order item
-                    .Include(o => o.Payments) // Include payments associated with the order
-                    .Include(o => o.ShippingAddress) // Include shipping address
-                    .ToList();
+                // Retrieve the order including related entities:
+                // - Include Order Items and their associated Products
+                // - Include Payments associated with the order
+                var order = context.Orders
+                    .Include(o => o.OrderItems)
+                        .ThenInclude(oi => oi.Product)
+                    .Include(o => o.Payments)
+                    .FirstOrDefault(o => o.OrderId == orderIdToUpdate);
 
-                // Check if any orders exist
-                if (orders.Any())
+                // Check if the order exists
+                if (order != null)
                 {
-                    // Iterate through each order
-                    foreach (var order in orders)
+                    // Update payment status if payment exists
+                    //var payment = order.Payments.FirstOrDefault();
+
+                    foreach (var payment in order.Payments)
                     {
-                        // Display basic order information
-                        Console.WriteLine($"Order ID: {order.OrderId}, Date: {order.OrderDate}, Status: {order.Status}, Total Amount: {order.TotalAmount}");
+                        // Display current payment status
+                        Console.WriteLine($"Current Payment Status: {payment.Status}");
 
-                        // Display customer information
-                        Console.WriteLine($"Customer: {order.Customer.FirstName} {order.Customer.LastName}");
-                        Console.WriteLine($"Email: {order.Customer.Email}");
-                        Console.WriteLine($"Phone: {order.Customer.Phone}");
+                        // Update the payment status to 'Completed'
+                        payment.Status = "Completed";
 
-                        // Display shipping address
-                        var address = order.ShippingAddress;
-                        Console.WriteLine("\nShipping Address:");
-                        Console.WriteLine($"\t{address.AddressLine1}");
-                        if (!string.IsNullOrEmpty(address.AddressLine2))
+                        // Display updated payment status
+                        Console.WriteLine($"Updated Payment Status: {payment.Status}\n");
+                    }
+
+                    //Updating Order Status
+                    // Display current order status
+                    Console.WriteLine($"Current Order Status: {order.Status}");
+
+                    // Update the order status to 'Processing'
+                    order.Status = "Processing";
+
+                    // Display updated order status
+                    Console.WriteLine($"Updated Order Status: {order.Status}\n");
+
+                    // Adjust stock quantities for each product in the order
+                    Console.WriteLine("Adjusting stock quantities for ordered products...");
+                    foreach (var orderItem in order.OrderItems)
+                    {
+                        var product = orderItem.Product;
+
+                        // Display current stock quantity
+                        Console.WriteLine($"Product: {product.ProductName}, Current Stock Quantity: {product.StockQuantity}");
+
+                        // Decrease the stock quantity by the quantity ordered
+                        product.StockQuantity = product.StockQuantity - orderItem.Quantity;
+
+                        // Ensure stock quantity does not go negative
+                        if (product.StockQuantity < 0)
                         {
-                            Console.WriteLine($"\t{address.AddressLine2}");
-                        }
-                        Console.WriteLine($"\t{address.City}, {address.State}, {address.PostalCode}, {address.Country}");
-
-                        // Display order items
-                        Console.WriteLine("\nOrder Items:");
-                        foreach (var item in order.OrderItems)
-                        {
-                            Console.WriteLine($"\tProduct: {item.Product.ProductName}, Quantity: {item.Quantity}, Unit Price: {item.UnitPrice}, Total Price: {item.TotalPrice}");
-                            Console.WriteLine(); // Blank line for readability
+                            product.StockQuantity = 0;
                         }
 
-                        // Display payment details
-                        Console.WriteLine("Payments:");
-                        foreach (var payment in order.Payments)
-                        {
-                            Console.WriteLine($"\tPayment ID: {payment.PaymentId}, Amount: {payment.Amount}, Payment Method: {payment.PaymentMethod}");
-                            Console.WriteLine($"\tPayment Date: {payment.PaymentDate}, Transaction ID: {payment.TransactionId}, Payment Status: {payment.Status}");
-                            Console.WriteLine(); // Blank line for readability
-                        }
+                        // Display updated stock quantity
+                        Console.WriteLine($"Updated Stock Quantity: {product.StockQuantity}\n");
+                    }
 
-                        Console.WriteLine(); // Separator for readability
+                    // Save all changes to the database
+                    context.SaveChanges();
+
+                    dbTransaction.Commit();
+                    Console.WriteLine("Order status, payment status, and stock quantities updated successfully.\n");
+                }
+                else
+                {
+                    Console.WriteLine($"Order with ID {orderIdToUpdate} not found.\n");
+                }
+
+                // Display the updated order and product details for confirmation
+                Console.WriteLine("Fetching updated order and product details...\n");
+
+                // Retrieve the updated order
+                var updatedOrder = context.Orders
+                    .Include(o => o.OrderItems)
+                        .ThenInclude(oi => oi.Product)
+                    .Include(o => o.Payments)
+                    .FirstOrDefault(o => o.OrderId == orderIdToUpdate);
+
+                if (updatedOrder != null)
+                {
+                    // Display order status
+                    Console.WriteLine($"Order ID: {updatedOrder.OrderId}, Order Status: {updatedOrder.Status}");
+
+                    // Display payment status
+                    var updatedPayment = updatedOrder.Payments.FirstOrDefault();
+                    if (updatedPayment != null)
+                    {
+                        Console.WriteLine($"Payment Status: {updatedPayment.Status}");
+                    }
+
+                    // Display updated stock quantities of products
+                    Console.WriteLine("\nUpdated Product Stock Quantities:");
+                    foreach (var orderItem in updatedOrder.OrderItems)
+                    {
+                        var product = orderItem.Product;
+                        Console.WriteLine($"Product: {product.ProductName}, Stock Quantity: {product.StockQuantity}");
                     }
                 }
                 else
                 {
-                    Console.WriteLine("No orders found in the database.");
+                    Console.WriteLine("Order not found after update.\n");
                 }
             }
             catch (DbUpdateException ex)
             {
+                dbTransaction.Rollback();
                 Console.WriteLine($"Database Error: {ex.InnerException?.Message ?? ex.Message}");
             }
             catch (Exception ex)
             {
+                dbTransaction.Rollback();
                 // Display any errors that occur during the operations
                 Console.WriteLine($"An error occurred: {ex.Message}");
             }
