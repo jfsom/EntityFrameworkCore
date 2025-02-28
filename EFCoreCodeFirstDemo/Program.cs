@@ -1,29 +1,26 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
-using Microsoft.EntityFrameworkCore;
-
 namespace EFCoreCodeFirstDemo
 {
     public class Program
     {
-        static async Task Main(string[] args)
+        public static void Main(string[] args)
         {
             try
             {
                 using var context = new EFCoreDbContext();
-                var usersWithStatus = context.Users
-                             .Select(u => new
-                             {
-                                 User = u,
-                                 IsActive = EF.Property<bool>(u, "IsActive") // Access the shadow property
-                             })
-                             .ToList();
 
-                Console.Read();
+                // Retrieve all active (non-deleted) orders
+                var activeOrders = context.Orders.ToList();
+
+                Console.WriteLine("\nActive Orders:");
+                foreach (var order in activeOrders)
+                {
+                    Console.WriteLine($"\tOrder ID: {order.OrderId}, Product: {order.ProductName}, Quantity: {order.Quantity}, Order Date: {order.OrderDate}");
+                }
             }
-
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
+                Console.WriteLine($"An error occurred while fetching active orders: {ex.Message}");
             }
         }
     }
