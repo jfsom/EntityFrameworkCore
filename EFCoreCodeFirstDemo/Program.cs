@@ -7,33 +7,31 @@ namespace EFCoreCodeFirstDemo
         {
             using (var context = new EFCoreDbContext())
             {
-                // Update an existing Utility Bill
+                // Delete a Utility Bill
                 var utilityBill = context.UtilityBills.FirstOrDefault(b => b.InvoiceNumber == "UB001");
                 if (utilityBill != null)
                 {
-                    utilityBill.Amount = 110.50m; // Update the total amount
-                    utilityBill.DueDate = DateTime.Now.AddDays(10); // Update the due date
+                    context.UtilityBills.Remove(utilityBill);
                     context.SaveChanges();
-                    Console.WriteLine("Utility Bill updated.");
+                    Console.WriteLine("Utility Bill deleted.");
                 }
 
-                // Update an existing Product Purchase
+                // Delete a Product Purchase
                 var productPurchase = context.ProductPurchases.FirstOrDefault(p => p.InvoiceNumber == "PP001");
                 if (productPurchase != null)
                 {
-                    productPurchase.Quantity = 2; // Increase the quantity
-                    productPurchase.Amount = productPurchase.Quantity * productPurchase.UnitPrice + productPurchase.ShippingCost;
+                    context.ProductPurchases.Remove(productPurchase);
                     context.SaveChanges();
-                    Console.WriteLine("Product Purchase updated.");
+                    Console.WriteLine("Product Purchase deleted.");
                 }
 
-                // Update an existing Subscription Service
+                // Delete a Subscription Service
                 var subscription = context.SubscriptionServices.FirstOrDefault(s => s.InvoiceNumber == "SS001");
                 if (subscription != null)
                 {
-                    subscription.AutoRenew = false; // Disable auto-renewal
+                    context.SubscriptionServices.Remove(subscription);
                     context.SaveChanges();
-                    Console.WriteLine("Subscription Service updated.");
+                    Console.WriteLine("Subscription Service deleted.");
                 }
             }
         }
