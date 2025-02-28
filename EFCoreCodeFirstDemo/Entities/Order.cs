@@ -7,5 +7,7 @@
         public int Quantity { get; set; }         // Quantity ordered
         public bool IsDeleted { get; set; }       // Soft delete flag
         public DateTime OrderDate { get; set; }   // Date of the order
+        public int CustomerId { get; set; } // Foreign key for the customer
+        public Customer Customer { get; set; } //Navigation Property
     }
 }

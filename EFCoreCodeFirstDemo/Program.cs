@@ -8,20 +8,37 @@ namespace EFCoreCodeFirstDemo
         {
             try
             {
-                using var context = new EFCoreDbContext();
+                // Simulating CustomerId from authentication
+                int customerId = 1; // Example CustomerId
 
-                // Retrieve all orders, including deleted ones
-                var allOrders = context.Orders.IgnoreQueryFilters().ToList();
+                using var context = new EFCoreDbContext(customerId);
 
-                Console.WriteLine("\nAll Orders (Including Deleted):");
-                foreach (var order in allOrders)
+                // Retrieve Orders for the current tenant
+                var customer = context.Customers
+                            .Include(ord => ord.Orders)
+                            .FirstOrDefault();
+
+                if (customer != null)
                 {
-                    Console.WriteLine($"\tOrder ID: {order.OrderId}, Product: {order.ProductName}, Quantity: {order.Quantity}, Order Date: {order.OrderDate}");
+                    Console.WriteLine($"Customer ID: {customerId}, Name: {customer.Name}, Email: {customer.Email}");
+                    Console.WriteLine($"Customer Orders");
+                    foreach (var order in customer.Orders)
+                    {
+                        Console.WriteLine($"\tOrder ID: {order.OrderId}, Product Name: {order.ProductName}, Order Date: {order.OrderDate.ToShortDateString()}");
+                    }
                 }
+                else
+                {
+                    Console.WriteLine($"Customer ID: {customerId} Not Found");
+                }
+            }
+            catch (DbUpdateException ex)
+            {
+                Console.WriteLine($"Database error: {ex.InnerException?.Message ?? ex.Message}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred while fetching active orders: {ex.Message}");
+                Console.WriteLine($"An error occurred while fetching cutsomer-specific orders: {ex.Message}");
             }
         }
     }
