@@ -7,131 +7,99 @@ namespace EcommerceApp
     {
         public static void Main(string[] args)
         {
-            using var context = new EcommerceDbContext();
-            var dbTransaction = context.Database.BeginTransaction();
-
             try
             {
-                // *** Update Order Status, Payment Status, and Adjust Stock Quantities ***
+                using var context = new EcommerceDbContext();
 
-                // Specify the Order ID that you want to update
-                int orderIdToUpdate = 1; // Change this to the actual Order ID
+                // *** Delete an Order and Associated Order Items and Payments ***
 
-                Console.WriteLine($"Updating Order ID: {orderIdToUpdate}\n");
+                // Specify the Order ID that you want to delete
+                int orderIdToDelete = 1; // Change this to the actual Order ID you want to delete
+
+                Console.WriteLine($"Attempting to delete Order ID: {orderIdToDelete}\n");
 
                 // Retrieve the order including related entities:
-                // - Include Order Items and their associated Products
-                // - Include Payments associated with the order
+                // - Include Order Items
+                // - Include Payments
                 var order = context.Orders
                     .Include(o => o.OrderItems)
-                        .ThenInclude(oi => oi.Product)
                     .Include(o => o.Payments)
-                    .FirstOrDefault(o => o.OrderId == orderIdToUpdate);
+                    .FirstOrDefault(o => o.OrderId == orderIdToDelete);
 
                 // Check if the order exists
                 if (order != null)
                 {
-                    // Update payment status if payment exists
-                    //var payment = order.Payments.FirstOrDefault();
+                    // Display order details
+                    Console.WriteLine("Order Details:");
+                    Console.WriteLine($"Order ID: {order.OrderId}, Date: {order.OrderDate}, Status: {order.Status},Total Amount: {order.TotalAmount}\n");
 
-                    foreach (var payment in order.Payments)
-                    {
-                        // Display current payment status
-                        Console.WriteLine($"Current Payment Status: {payment.Status}");
-
-                        // Update the payment status to 'Completed'
-                        payment.Status = "Completed";
-
-                        // Display updated payment status
-                        Console.WriteLine($"Updated Payment Status: {payment.Status}\n");
-                    }
-
-                    //Updating Order Status
-                    // Display current order status
-                    Console.WriteLine($"Current Order Status: {order.Status}");
-
-                    // Update the order status to 'Processing'
-                    order.Status = "Processing";
-
-                    // Display updated order status
-                    Console.WriteLine($"Updated Order Status: {order.Status}\n");
-
-                    // Adjust stock quantities for each product in the order
-                    Console.WriteLine("Adjusting stock quantities for ordered products...");
+                    // Display associated order items
+                    Console.WriteLine("Associated Order Items:");
                     foreach (var orderItem in order.OrderItems)
                     {
-                        var product = orderItem.Product;
-
-                        // Display current stock quantity
-                        Console.WriteLine($"Product: {product.ProductName}, Current Stock Quantity: {product.StockQuantity}");
-
-                        // Decrease the stock quantity by the quantity ordered
-                        product.StockQuantity = product.StockQuantity - orderItem.Quantity;
-
-                        // Ensure stock quantity does not go negative
-                        if (product.StockQuantity < 0)
-                        {
-                            product.StockQuantity = 0;
-                        }
-
-                        // Display updated stock quantity
-                        Console.WriteLine($"Updated Stock Quantity: {product.StockQuantity}\n");
+                        Console.WriteLine($"\tOrder Item ID: {orderItem.OrderItemId}, Product ID: {orderItem.ProductId}, Quantity: {orderItem.Quantity}, Total Price: {orderItem.TotalPrice}");
                     }
+
+                    // Display associated payments
+                    Console.WriteLine("\nAssociated Payments:");
+                    foreach (var payment in order.Payments)
+                    {
+                        Console.WriteLine($"\tPayment ID: {payment.PaymentId}, Amount: {payment.Amount}, Status: {payment.Status}");
+                    }
+
+                    Console.WriteLine("\nProceeding to delete the order and its associated order items and payments...\n");
+
+                    // Remove order items first due to foreign key constraints
+                    if (order.OrderItems.Any())
+                    {
+                        context.OrderItems.RemoveRange(order.OrderItems);
+                        Console.WriteLine("Order items deleted successfully.");
+                    }
+
+                    // Remove payments associated with the order
+                    if (order.Payments.Any())
+                    {
+                        context.Payments.RemoveRange(order.Payments);
+                        Console.WriteLine("Payments deleted successfully.");
+                    }
+
+                    // Remove the order
+                    context.Orders.Remove(order);
+                    Console.WriteLine("Order deleted successfully.");
 
                     // Save all changes to the database
                     context.SaveChanges();
+                    Console.WriteLine("\nAll changes have been saved to the database.");
 
-                    dbTransaction.Commit();
-                    Console.WriteLine("Order status, payment status, and stock quantities updated successfully.\n");
-                }
-                else
-                {
-                    Console.WriteLine($"Order with ID {orderIdToUpdate} not found.\n");
-                }
+                    // Confirm Deletion
+                    Console.WriteLine("\nVerifying that the order and associated records have been deleted...");
 
-                // Display the updated order and product details for confirmation
-                Console.WriteLine("Fetching updated order and product details...\n");
+                    // Attempt to retrieve the order again
+                    var deletedOrder = context.Orders
+                        .Include(o => o.OrderItems)
+                        .Include(o => o.Payments)
+                        .FirstOrDefault(o => o.OrderId == orderIdToDelete);
 
-                // Retrieve the updated order
-                var updatedOrder = context.Orders
-                    .Include(o => o.OrderItems)
-                        .ThenInclude(oi => oi.Product)
-                    .Include(o => o.Payments)
-                    .FirstOrDefault(o => o.OrderId == orderIdToUpdate);
-
-                if (updatedOrder != null)
-                {
-                    // Display order status
-                    Console.WriteLine($"Order ID: {updatedOrder.OrderId}, Order Status: {updatedOrder.Status}");
-
-                    // Display payment status
-                    var updatedPayment = updatedOrder.Payments.FirstOrDefault();
-                    if (updatedPayment != null)
+                    if (deletedOrder == null)
                     {
-                        Console.WriteLine($"Payment Status: {updatedPayment.Status}");
+                        Console.WriteLine("Order deletion confirmed. The order and its associated order items and payments have been successfully deleted.");
                     }
-
-                    // Display updated stock quantities of products
-                    Console.WriteLine("\nUpdated Product Stock Quantities:");
-                    foreach (var orderItem in updatedOrder.OrderItems)
+                    else
                     {
-                        var product = orderItem.Product;
-                        Console.WriteLine($"Product: {product.ProductName}, Stock Quantity: {product.StockQuantity}");
+                        Console.WriteLine("Order deletion failed. The order still exists in the database.");
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Order not found after update.\n");
+                    Console.WriteLine($"Order with ID {orderIdToDelete} not found. No deletion performed.");
                 }
             }
             catch (DbUpdateException ex)
             {
-                dbTransaction.Rollback();
                 Console.WriteLine($"Database Error: {ex.InnerException?.Message ?? ex.Message}");
             }
             catch (Exception ex)
             {
-                dbTransaction.Rollback();
                 // Display any errors that occur during the operations
                 Console.WriteLine($"An error occurred: {ex.Message}");
             }
