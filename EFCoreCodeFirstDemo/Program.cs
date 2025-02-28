@@ -1,4 +1,6 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
+using Microsoft.EntityFrameworkCore;
+
 namespace EFCoreCodeFirstDemo
 {
     public class Program
@@ -8,9 +10,13 @@ namespace EFCoreCodeFirstDemo
             try
             {
                 using var context = new EFCoreDbContext();
-                var user = new User { Name = "Pranaya Rout" };
-                context.Users.Add(user);
-                context.SaveChanges();
+                var usersWithStatus = context.Users
+                             .Select(u => new
+                             {
+                                 User = u,
+                                 IsActive = EF.Property<bool>(u, "IsActive") // Access the shadow property
+                             })
+                             .ToList();
 
                 Console.Read();
             }
