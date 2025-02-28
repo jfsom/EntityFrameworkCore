@@ -1,4 +1,5 @@
 ﻿using EFCoreCodeFirstDemo.Entities;
+using Microsoft.EntityFrameworkCore;
 namespace EFCoreCodeFirstDemo
 {
     public class Program
@@ -9,11 +10,11 @@ namespace EFCoreCodeFirstDemo
             {
                 using var context = new EFCoreDbContext();
 
-                // Retrieve all active (non-deleted) orders
-                var activeOrders = context.Orders.ToList();
+                // Retrieve all orders, including deleted ones
+                var allOrders = context.Orders.IgnoreQueryFilters().ToList();
 
-                Console.WriteLine("\nActive Orders:");
-                foreach (var order in activeOrders)
+                Console.WriteLine("\nAll Orders (Including Deleted):");
+                foreach (var order in allOrders)
                 {
                     Console.WriteLine($"\tOrder ID: {order.OrderId}, Product: {order.ProductName}, Quantity: {order.Quantity}, Order Date: {order.OrderDate}");
                 }
