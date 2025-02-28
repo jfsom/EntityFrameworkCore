@@ -11,27 +11,15 @@ namespace EFCoreCodeFirstDemo.Entities
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<BlogPost>().Property<DateTime>("CreatedAt");
-            modelBuilder.Entity<BlogPost>().Property<DateTime>("LastUpdatedAt");
+            modelBuilder.Entity<Post>()
+              .HasOne(p => p.Blog)
+              .WithMany(b => b.Posts)
+              .HasForeignKey("BlogId"); // Configure BlogId as a shadow property
         }
 
-        public override int SaveChanges()
-        {
-            var timestamp = DateTime.UtcNow;
-            foreach (var entry in ChangeTracker.Entries<BlogPost>())
-            {
-                if (entry.State == EntityState.Added)
-                {
-                    entry.Property("CreatedAt").CurrentValue = timestamp;
-                    entry.Property("LastUpdatedAt").CurrentValue = timestamp;
-                }
-                else if (entry.State == EntityState.Modified)
-                {
-                    entry.Property("LastUpdatedAt").CurrentValue = timestamp;
-                }
-            }
-            return base.SaveChanges();
-        }
-        public DbSet<BlogPost> BlogPosts { get; set; }
+        public DbSet<Blog> Blogs { get; set; }
+        public DbSet<Post> Posts { get; set; }
+
+
     }
 }
