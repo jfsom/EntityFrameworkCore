@@ -5,39 +5,31 @@ namespace EFCoreCodeFirstDemo
 {
     public class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
+            // Initialize the DbContext for interacting with the ECommerce database
+            using var context = new ECommerceDbContext();
+
+            // Begin a manual transaction using the context
+            using var transaction = await context.Database.BeginTransactionAsync();
+            Console.WriteLine("Transaction started...");
+
             try
             {
-                // Initialize the DbContext for interacting with the ECommerce database
-                using var context = new ECommerceDbContext();
-                Console.WriteLine("Creating an Order");
-
-                // 1. Create a new order with multiple order items and an initial payment
+                // 1. Create a new order with order items and initial payment status (Pending)
                 var order = new Order
                 {
-                    // Set the order date to the current UTC time
-                    OrderDate = DateTime.UtcNow,
+                    OrderDate = DateTime.UtcNow, // Set the current UTC time for the order date
+                    TotalAmount = 150.00m, // Set the total amount of the order
 
-                    // Set the total amount for the order
-                    TotalAmount = 250.00m,
-
-                    // Define the order items associated with this order
+                    // Define the items in the order (in this case, one item)
                     OrderItems = new List<OrderItem>
                     {
-                        // First item in the order
                         new OrderItem
                         {
-                            ProductId = 1, // Refers to the product with ID 1
-                            Quantity = 2,  // 2 units ordered
-                            Price = 100.00m // Price per unit
-                        },
-                        // Second item in the order
-                        new OrderItem
-                        {
-                            ProductId = 2, // Refers to the product with ID 2
-                            Quantity = 1,  // 1 unit ordered
-                            Price = 50.00m // Price per unit
+                            ProductId = 1, // The ProductId of the item being ordered
+                            Quantity = 1, // Number of units ordered
+                            Price = 150.00m // Price per unit
                         }
                     },
 
@@ -45,33 +37,69 @@ namespace EFCoreCodeFirstDemo
                     Payment = new Payment
                     {
                         PaymentDate = DateTime.UtcNow, // Set the payment date as the current UTC time
-                        Amount = 250.00m, // Payment amount matches the total order amount
+                        Amount = 150.00m, // Set the payment amount to match the order total
                         Status = PaymentStatus.Pending // Set the initial payment status to 'Pending'
                     }
                 };
 
-                // Add the new order to the DbSet in the context (but not yet saved to the database)
+                // Add the new order to the Orders DbSet in the context
                 context.Orders.Add(order);
-                Console.WriteLine("Order added to the DbContext... Preparing to save changes.");
+                Console.WriteLine("Order and associated payment details added to the DbContext...");
 
-                // 2. Save the changes to the database, which inserts the order, order items, and payment
-                context.SaveChanges();
-                Console.WriteLine($"Order placed successfully with Order ID: {order.OrderId}.");
+                // Save changes asynchronously to the database (this inserts the order, items, and payment)
+                await context.SaveChangesAsync();
+                Console.WriteLine($"Order ID {order.OrderId} created with initial payment status '{order.Payment.Status}'.");
 
+                // 2. Update the product inventory based on the ordered item
+                var orderItem = order.OrderItems.First(); // Get the first (and only) order item
+                var product = await context.Products.FirstOrDefaultAsync(p => p.ProductId == orderItem.ProductId); // Fetch the product from the database
+
+                if (product != null)
+                {
+                    // Reduce the product's quantity based on the ordered quantity
+                    product.Quantity -= orderItem.Quantity;
+
+                    // Update the 'In Stock' status based on the new quantity
+                    product.IsInStock = product.Quantity > 0;
+
+                    // Update the product in the context
+                    context.Products.Update(product);
+                    Console.WriteLine($"Updating inventory for product '{product.Name}'...");
+
+                    // Save changes asynchronously to reflect the updated inventory in the database
+                    await context.SaveChangesAsync();
+                    Console.WriteLine($"Product '{product.Name}' inventory updated. New Quantity: {product.Quantity}. In Stock: {product.IsInStock}");
+                }
+                else
+                {
+                    // If the product is not found, throw an exception to trigger a rollback
+                    throw new Exception("Product not found in the inventory.");
+                }
+
+                // 3. Update the payment status to 'Completed' after successful inventory update
+                order.Payment.Status = PaymentStatus.Completed; // Update the payment status to 'Completed'
+                context.Payments.Update(order.Payment); // Update the payment entity in the context
+                Console.WriteLine($"Updating payment status for Order ID {order.OrderId}...");
+
+                // Save changes asynchronously to update the payment status in the database
+                await context.SaveChangesAsync();
+                Console.WriteLine($"Payment status for Order ID {order.OrderId} updated to '{order.Payment.Status}'.");
+
+                // Commit the transaction if all operations are successful
+                await transaction.CommitAsync();
+                Console.WriteLine($"Transaction committed successfully for Order ID {order.OrderId}.");
             }
             catch (DbUpdateException ex)
             {
-                // Catch database update errors, such as constraint violations or connection issues
-                Console.WriteLine($"Database Error placing order: {ex.InnerException?.Message ?? ex.Message}");
-
-                // Any error during SaveChanges() automatically rolls back the transaction
+                // Rollback the transaction if a database update error occurs
+                await transaction.RollbackAsync();
+                Console.WriteLine($"Transaction rolled back due to Database Error: {ex.InnerException?.Message ?? ex.Message}");
             }
             catch (Exception ex)
             {
-                // Catch any general exceptions that occur during the process
-                Console.WriteLine($"Error placing order: {ex.Message}");
-
-                // If an exception occurs, the changes are rolled back, and the database state remains consistent
+                // Rollback the transaction if any other general error occurs
+                await transaction.RollbackAsync();
+                Console.WriteLine($"Transaction rolled back due to an error: {ex.Message}");
             }
         }
     }
