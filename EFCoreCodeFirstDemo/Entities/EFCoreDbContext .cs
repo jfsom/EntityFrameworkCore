@@ -30,7 +30,9 @@ namespace EFCoreCodeFirstDemo.Entities
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Global Query Filter to enforce cutsomer-based data isolation
-            modelBuilder.Entity<Order>().HasQueryFilter(c => c.CustomerId == _currentCustomerId);
+
+            //Combining using AND (&&) or OR (||)
+            modelBuilder.Entity<Order>().HasQueryFilter(o => !o.IsDeleted && o.CustomerId == _currentCustomerId);
         }
 
         // DbSet representing Customers and Orders tables
