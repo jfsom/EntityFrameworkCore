@@ -7,28 +7,33 @@ namespace EFCoreCodeFirstDemo
         {
             using (var context = new EFCoreDbContext())
             {
-                // Retrieve and display all Utility Bills
-                var utilityBills = context.UtilityBills.ToList();
-                Console.WriteLine("\n--- List of Utility Bills ---");
-                foreach (var bill in utilityBills)
+                // Update an existing Utility Bill
+                var utilityBill = context.UtilityBills.FirstOrDefault(b => b.InvoiceNumber == "UB001");
+                if (utilityBill != null)
                 {
-                    Console.WriteLine($"Invoice: {bill.InvoiceNumber}, Amount: {bill.Amount}, Utility: {bill.UtilityType}, Usage: {bill.UsageAmount} units, Rate: {bill.RatePerUnit}, Provider: {bill.UtilityProvider}");
+                    utilityBill.Amount = 110.50m; // Update the total amount
+                    utilityBill.DueDate = DateTime.Now.AddDays(10); // Update the due date
+                    context.SaveChanges();
+                    Console.WriteLine("Utility Bill updated.");
                 }
 
-                // Retrieve and display all Product Purchases
-                var productPurchases = context.ProductPurchases.ToList();
-                Console.WriteLine("\n--- List of Product Purchases ---");
-                foreach (var purchase in productPurchases)
+                // Update an existing Product Purchase
+                var productPurchase = context.ProductPurchases.FirstOrDefault(p => p.InvoiceNumber == "PP001");
+                if (productPurchase != null)
                 {
-                    Console.WriteLine($"Invoice: {purchase.InvoiceNumber}, Product: {purchase.ProductName}, Quantity: {purchase.Quantity}, Vendor: {purchase.Vendor}, Shipping Cost: {purchase.ShippingCost}");
+                    productPurchase.Quantity = 2; // Increase the quantity
+                    productPurchase.Amount = productPurchase.Quantity * productPurchase.UnitPrice + productPurchase.ShippingCost;
+                    context.SaveChanges();
+                    Console.WriteLine("Product Purchase updated.");
                 }
 
-                // Retrieve and display all Subscription Services
-                var subscriptions = context.SubscriptionServices.ToList();
-                Console.WriteLine("\n--- List of Subscription Services ---");
-                foreach (var subscription in subscriptions)
+                // Update an existing Subscription Service
+                var subscription = context.SubscriptionServices.FirstOrDefault(s => s.InvoiceNumber == "SS001");
+                if (subscription != null)
                 {
-                    Console.WriteLine($"Invoice: {subscription.InvoiceNumber}, Service: {subscription.ServiceName}, Fee: {subscription.SubscriptionFee}, Auto-Renew: {subscription.AutoRenew}");
+                    subscription.AutoRenew = false; // Disable auto-renewal
+                    context.SaveChanges();
+                    Console.WriteLine("Subscription Service updated.");
                 }
             }
         }
