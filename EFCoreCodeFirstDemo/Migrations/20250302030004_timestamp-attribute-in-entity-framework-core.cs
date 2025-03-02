@@ -7,34 +7,34 @@
 namespace EFCoreCodeFirstDemo.Migrations
 {
     /// <inheritdoc />
-    public partial class concurrencycheckattributeinentityframeworkcore : Migration
+    public partial class timestampattributeinentityframeworkcore : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Students",
+                name: "Products",
                 columns: table => new
                 {
-                    StudentId = table.Column<int>(type: "int", nullable: false)
+                    ProductId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    RegdNumber = table.Column<int>(type: "int", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Branch = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    StockQuantity = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Students", x => x.StudentId);
+                    table.PrimaryKey("PK_Products", x => x.ProductId);
                 });
 
             migrationBuilder.InsertData(
-                table: "Students",
-                columns: new[] { "StudentId", "Branch", "Name", "RegdNumber" },
+                table: "Products",
+                columns: new[] { "ProductId", "Name", "Price", "StockQuantity" },
                 values: new object[,]
                 {
-                    { 1, "CSE", "Pranaya", 1001 },
-                    { 2, "CSE", "Hina", 1002 },
-                    { 3, "CSE", "Rakesh", 1003 }
+                    { 1, "Laptop", 5000m, 10 },
+                    { 2, "Desktop", 3000m, 15 },
+                    { 3, "Mobile", 1500m, 20 }
                 });
         }
 
@@ -42,7 +42,7 @@ namespace EFCoreCodeFirstDemo.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Students");
+                name: "Products");
         }
     }
 }

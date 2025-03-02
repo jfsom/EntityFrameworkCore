@@ -21,50 +21,49 @@ namespace EFCoreCodeFirstDemo.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("EFCoreCodeFirstDemo.Models.Student", b =>
+            modelBuilder.Entity("EFCoreCodeFirstDemo.Entities.Product", b =>
                 {
-                    b.Property<int>("StudentId")
+                    b.Property<int>("ProductId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StudentId"));
-
-                    b.Property<string>("Branch")
-                        .HasColumnType("nvarchar(max)");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductId"));
 
                     b.Property<string>("Name")
-                        .IsConcurrencyToken()
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("RegdNumber")
-                        .IsConcurrencyToken()
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<int>("StockQuantity")
                         .HasColumnType("int");
 
-                    b.HasKey("StudentId");
+                    b.HasKey("ProductId");
 
-                    b.ToTable("Students");
+                    b.ToTable("Products");
 
                     b.HasData(
                         new
                         {
-                            StudentId = 1,
-                            Branch = "CSE",
-                            Name = "Pranaya",
-                            RegdNumber = 1001
+                            ProductId = 1,
+                            Name = "Laptop",
+                            Price = 5000m,
+                            StockQuantity = 10
                         },
                         new
                         {
-                            StudentId = 2,
-                            Branch = "CSE",
-                            Name = "Hina",
-                            RegdNumber = 1002
+                            ProductId = 2,
+                            Name = "Desktop",
+                            Price = 3000m,
+                            StockQuantity = 15
                         },
                         new
                         {
-                            StudentId = 3,
-                            Branch = "CSE",
-                            Name = "Rakesh",
-                            RegdNumber = 1003
+                            ProductId = 3,
+                            Name = "Mobile",
+                            Price = 1500m,
+                            StockQuantity = 20
                         });
                 });
 #pragma warning restore 612, 618

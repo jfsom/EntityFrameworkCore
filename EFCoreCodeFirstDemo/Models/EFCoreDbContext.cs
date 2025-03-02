@@ -1,28 +1,23 @@
-﻿using EFCoreCodeFirstDemo.Models;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
 namespace EFCoreCodeFirstDemo.Entities
 {
     public class EFCoreDbContext : DbContext
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            // To Display the Generated the Database Script
-            optionsBuilder.LogTo(Console.WriteLine, LogLevel.Information);
-
             optionsBuilder.UseSqlServer(@"Server=DESKTOP-RUC57UF;Database=StudentDB;Trusted_Connection=True;TrustServerCertificate=True;");
         }
 
         //Overriding the OnModelCreating method to add seed data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Seeding Student data
-            modelBuilder.Entity<Student>().HasData(
-                    new Student { StudentId = 1, Name = "Pranaya", Branch = "CSE", RegdNumber = 1001 },
-                    new Student { StudentId = 2, Name = "Hina", Branch = "CSE", RegdNumber = 1002 },
-                    new Student { StudentId = 3, Name = "Rakesh", Branch = "CSE", RegdNumber = 1003 }
+            // Seeding Product data
+            modelBuilder.Entity<Product>().HasData(
+                    new Product { ProductId = 1, Name = "Laptop", Price = 5000, StockQuantity = 10 },
+                    new Product { ProductId = 2, Name = "Desktop", Price = 3000, StockQuantity = 15 },
+                    new Product { ProductId = 3, Name = "Mobile", Price = 1500, StockQuantity = 20 }
                 );
         }
-        public DbSet<Student> Students { get; set; }
+        public DbSet<Product> Products { get; set; }
     }
 }
